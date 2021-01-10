@@ -1,22 +1,32 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet" href="/css/homepage.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Kaushan+Script">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
-<body>
-    <h1>Welcome to login page of <%= school %></h1>
-    <p style="color: red;"><%=message%></p>
-    <form method="POST" id="login_form"> 
-        <label>Username:</label>
-        <input type="text" name="username"></input>
-        <label>password: </label>
-        <input type="password" name="password"></input>
-        <button type="submit">Submit</button>
-    </form>
-    
-    
+<body class="text-center" style="background-color: #f5f4f4;">
+
+    <div class="container">
+        <span class="welcomeheading text-center">Welcome to <%= school %></span>
+        <form class="form-signin" method="POST" id="login_form">
+            <h1 class="h3 mb-3 font-weight-normal">Sign in</h1>
+            <label for="inputEmail" class="sr-only">Email address</label>
+            <input type="text" name="username" id="inputEmail" class="form-control" placeholder="Username" required autofocus>
+            <label for="inputPassword" class="sr-only">Password</label>
+            <input type="password" name="password" id="inputPassword" class="form-control" placeholder="Password" required>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+          </form>
+    </div>
+
+
 
     <script>
         var schoolname = <%-JSON.stringify(school)%>;

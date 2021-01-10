@@ -1,18 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Schuddle-Register your school</title>
+    <link rel="stylesheet" href="/css/homepage.min.css">    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Kaushan+Script">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700">
 </head>
-<body>
-    <form action="/register" method="POST">
-        <input type="text" name="schoolname" placeholder="schoolname">
-        <input type="email" name="schoolemail" placeholder="schoolemail">
-        <input type="text" name="username" placeholder="admin">
-        <input type="password" name="password" placeholder="password">
-        <input type="text" name="shortname" placeholder="school short name"></input>
-        <button type="submit" name="register">register</button>
-        </form>
+<body id="#page-top">
+    <nav class="navbar navbar-dark navbar-expand-lg fixed-top bg-dark" id="mainNav">
+        <div class="container"><a class="navbar-brand" href="#page-top">Schudle</a><button data-toggle="collapse" data-target="#navbarResponsive" class="navbar-toggler navbar-toggler-right" type="button" data-toogle="collapse" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><i class="fa fa-bars"></i></button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="nav navbar-nav ml-auto text-uppercase">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" style="color:  #fed136 !important;">Register</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="masthead" style="background: url(&quot;/images/bgimage1.jpg&quot;);">
+        <div class="container">
+            <div class="intro-text">
+                <div class="intro-heading text-uppercase"><span>Register Your School.</span></div>
+            </div>
+        </div>
+    </header>
+
+    <section id="registerform">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2 class="text-uppercase section-heading">Register</h2>
+                    <h3 class="text-muted section-subheading">Provide your school details.</h3>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <form action="/register" method="POST">
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <label for="schoolname">School Name</label>
+                                <input type="text" id="schoolname" class="form-control" name="schoolname" placeholder="Provide your School Name" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <label for="schoolemail">School Email</label>
+                                <input type="text" id="schoolemail" class="form-control" name="schoolemail" placeholder="Provide your School Emailid" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="adminusername">Admin Username</label>
+                                <input type="text" class="form-control" id="adminusername" name="username" placeholder="Username" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="password">Admin Password</label>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <label for="shortname">School Short Name</label>
+                                <input type="text" id="shortname" class="form-control" name="shortname" placeholder="Please provide short name of your school" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-xl" name="register">Register</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+
+    <footer class="bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4"><span class="copyright">Copyright&nbsp;© Schudle 2021</span></div>
+                <div class="col-md-4">
+                    <ul class="list-inline social-buttons">
+                        <li class="list-inline-item"><a href="#"><i class="fa fa-twitter"></i></a></li>
+                        <li class="list-inline-item"><a href="#"><i class="fa fa-facebook"></i></a></li>
+                        <li class="list-inline-item"><a href="#"><i class="fa fa-linkedin"></i></a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <ul class="list-inline quicklinks">
+                        <li class="list-inline-item"><a href="#">Privacy Policy</a></li>
+                        <li class="list-inline-item"><a href="#">Terms of Use</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
+    <script src="/javascript/homepage.min.js"></script>
+    <script src="https://kit.fontawesome.com/eb9e477f45.js" crossorigin="anonymous"></script>
+
 </body>
 </html>
