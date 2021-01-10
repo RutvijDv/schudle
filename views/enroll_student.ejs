@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>Enroll Students
+    </h1>
+
+
+
+    <form method="POST" id="enroll_srudent">
+
+        <%students.forEach(function(student){%>
+            <input class="checkbox" type="checkbox" name="studentname" value="<%=student._id%>">
+            <%=student.username%><br>
+                <%})%>
+
+                    <button type="submit" name="submit">Enroll</button>
+    </form>
+
+</body>
+<script>
+    function validateGrp() {
+        let things = document.querySelectorAll('.checkbox')
+        let checked = 0;
+        for (let thing of things) {
+            thing.checked && checked++
+        }
+        if (checked) {
+            things[things.length - 1].setCustomValidity("");
+            document.getElementById('enroll_student').submit();
+        } else {
+            things[things.length - 1].setCustomValidity("You must check at least one checkbox");
+            things[things.length - 1].reportValidity();
+        }
+    }
+
+    document.querySelector('[name=submit]').addEventListener('click', () => {
+        validateGrp()
+    });
+</script>
+
+</html>
