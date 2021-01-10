@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
-<body>
-    <h1>Welcome to student dashboard of <%=school%></h1>
-    <form method="GET" id="logout">
-        <button type="submit">Logout</button>
-    </form>
 
-    <script>
-        var schoolname = <%-JSON.stringify(school)%>;
-        schoolname = "/"+schoolname+"/logout";
-        document.getElementById('logout').setAttribute("action", schoolname ); 
-    </script>
+<body>
+    <h1>Welcome to student dashboard of
+        <%=school%>
+    </h1>
+    <form action="/<%=school%>" method="POST" id="logout">
+        <button type="submit" name="button" value="logout">Logout</button>
+    </form>
 </body>
+
 </html>

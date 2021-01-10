@@ -1,27 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+
 <body>
-    <h1>Welcome to login page of <%= school %></h1>
-    <p style="color: red;"><%=message%></p>
-    <form method="POST" id="login_form"> 
+    <h1>Welcome to login page of
+        <%= school %>
+    </h1>
+    <p style="color: red;">
+        <%=message%>
+    </p>
+    <form method="POST" id="login_form">
         <label>Username:</label>
         <input type="text" name="username"></input>
         <label>password: </label>
         <input type="password" name="password"></input>
-        <button type="submit">Submit</button>
+        <button type="submit" name="button" value="login">Submit</button>
     </form>
-    
-    
-
-    <script>
-        var schoolname = <%-JSON.stringify(school)%>;
-        schoolname = "/"+schoolname+"/login"
-        document.getElementById('login_form').setAttribute("action", schoolname ) 
-    </script>
 </body>
+
 </html>

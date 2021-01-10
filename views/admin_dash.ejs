@@ -1,20 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+
 <body>
-    <h1>Welcome to admin dashboard of <%=school%></h1>
-    <form method="GET" id="logout">
-        <button type="submit">Logout</button>
+    <h1>Welcome to admin dashboard of
+        <%=school%>
+    </h1>
+
+    <form method="POST" id="create_course">
+        <button type="submit" name="button" value="createcourse">Create Course</button>
     </form>
 
-    <script>
-        var schoolname = <%-JSON.stringify(school)%>;
-        schoolname = "/"+schoolname+"/logout";
-        document.getElementById('logout').setAttribute("action", schoolname ); 
-    </script>
+    <form method="POST" id="create_prof">
+        <button type="submit" name="button" value="createprof">Create Professor</button>
+    </form>
+
+    <form method="POST" id="create_student">
+        <button type="submit" name="button" value="createstudent">Create Student</button>
+    </form>
+
+    <form action="/<%=school%>" method="POST" id="logout">
+        <button type="submit" name="button" value="logout">Logout</button>
+    </form>
+
+    <h4>Courses</h4>
+
+    <%courses.forEach(function(course){%>
+        <a href="/<%=school%>/admin/courses/<%=course.coursename%>">
+            <%=course.coursename%><br>
+        </a>
+        <%})%>
 </body>
+
 </html>
