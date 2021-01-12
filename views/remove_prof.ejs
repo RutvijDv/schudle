@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>Remove Professors
+    </h1>
+
+    <form method="POST" id="remove_prof">
+
+        <%professors.forEach(function(prof){%>
+            <input class="checkbox" type="checkbox" name="profname" value="<%=prof._id%>">
+            <%=prof.username%><br>
+                <%})%>
+                    <button type="submit" name="submit">Remove</button>
+    </form>
+
+</body>
+<script>
+    function validateGrp() {
+        let things = document.querySelectorAll('.checkbox')
+        let checked = 0;
+        for (let thing of things) {
+            thing.checked && checked++
+        }
+        if (checked) {
+            things[things.length - 1].setCustomValidity("");
+            document.getElementById('remove_prof').submit();
+        } else {
+            things[things.length - 1].setCustomValidity("You must check at least one checkbox");
+            things[things.length - 1].reportValidity();
+        }
+    }
+
+    document.querySelector('[name=submit]').addEventListener('click', () => {
+        validateGrp()
+    });
+</script>
+
+</html>
