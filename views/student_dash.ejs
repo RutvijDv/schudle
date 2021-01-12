@@ -11,6 +11,10 @@
     <h1>Welcome to student dashboard of
         <%=school%>
     </h1>
+    <h3>No. of Courses :<%= courses.length %></h3>
+    <%courses.forEach(function(course){ %>
+        <p><%= course.coursename %> </p>
+    <%})%>
     <form action="/<%=school%>" method="POST" id="logout">
         <button type="submit" name="button" value="logout">Logout</button>
     </form>

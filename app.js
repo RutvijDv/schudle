@@ -210,7 +210,6 @@ app.get("/:schoolname/admin/dashboard", function(req, res) {
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
         School.findOne({ shortname: schoolname }, function(err, find) {
-            console.log(find.studentid.length);
             Course.find({ schoolid: find._id }, function(err, found) {
                 res.render("admin_dash", { school: schoolname, courses: found, no_student:find.studentid.length , no_professor:find.professorid.length ,message: "" });
             })
@@ -248,7 +247,9 @@ app.get("/:schoolname/professor/dashboard", function(req, res) {
     const schoolname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "professor" && req.user.schoolshort == schoolname) {
-        res.render("professor_dash", { school: schoolname })
+        Course.find({professorid:{$in: [String(req.user._id)]}}, function (err, find) {
+            res.render("professor_dash", { school: schoolname,courses:find})
+        });
     } else {
         res.redirect("/" + schoolname);
     }
@@ -260,7 +261,9 @@ app.get("/:schoolname/student/dashboard", function(req, res) {
     const schoolname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "student" && req.user.schoolshort == schoolname) {
-        res.render("student_dash", { school: schoolname })
+        Course.find({studentid:{$in:[String(req.user._id)]}}, function (err, find) {
+            res.render("student_dash", { school: schoolname, courses:find})
+        });
     } else {
         res.redirect("/" + schoolname);
     }
@@ -695,6 +698,7 @@ app.post("/:schoolname/admin/courses/:coursename/enrollstudent", function(req, r
     }
 })
 
+//Remove Student route
 app.get("/:schoolname/admin/courses/:coursename/removestudent", function(req, res) {
     const schoolname = req.params.schoolname;
     const coursename = req.params.coursename;
