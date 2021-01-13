@@ -68,6 +68,7 @@ const userSchema = new mongoose.Schema({
         enum: ['professor', 'admin', 'student'],
         default: 'student'
     },
+    courses: [],
 });
 
 
@@ -555,6 +556,10 @@ app.post("/:schoolname/admin/courses/:coursename/assignprof", function(req, res)
 
                 for (var i = 0; i < professors.length; i++) {
                     found.professorid.push(professors[i]);
+                    User.findOne({_id : professors[i]},function (err, user) {
+                        user.courses.push(found._id);
+                        user.save(function(){});                        
+                    })
                 }
                 found.save(function() {
                     res.redirect("/" + schoolname + "/admin/courses/" + coursename);
@@ -617,10 +622,9 @@ app.post("/:schoolname/admin/courses/:coursename/removeprof", function (req, res
         School.findOne({shortname: schoolname}, function (err, find) {
      
             for (var i = 0; i < professors.length; i++) {
+                var prof_id = professors[i];
                 Course.findOneAndUpdate({coursename: coursename,schoolid: find._id},{$pull: {professorid: professors[i]}}, function(err, founded){
-                    if (err) {
-                        console.log(err);
-                    }
+                    User.findOneAndUpdate({_id: prof_id},{$pull: {courses: {$in : founded._id}}}, function(err, found){});
                 });    
             }
             res.redirect("/" + schoolname + "/admin/courses/" + coursename);
@@ -687,6 +691,10 @@ app.post("/:schoolname/admin/courses/:coursename/enrollstudent", function(req, r
 
                 for (var i = 0; i < students.length; i++) {
                     found.studentid.push(students[i]);
+                    User.findOne({_id : students[i]},function (err, user) {
+                        user.courses.push(found._id);
+                        user.save(function(){});                        
+                    })
                 }
                 found.save(function() {
                     res.redirect("/" + schoolname + "/admin/courses/" + coursename);
@@ -748,10 +756,9 @@ app.post("/:schoolname/admin/courses/:coursename/removestudent", function(req, r
         }
         School.findOne({ shortname: schoolname }, function(err, find) {
             for (var i = 0; i < students.length; i++) {
+                var stud_id=students[i];
                 Course.findOneAndUpdate({coursename: coursename, schoolid: find._id},{$pull: {studentid: students[i]}}, function(err, founded){
-                    if (err) {
-                        console.log(err);
-                    }
+                    User.findOneAndUpdate({_id: stud_id},{$pull: {courses: {$in : founded._id}}}, function(err, found){});
                 });
             };
             res.redirect("/" + schoolname + "/admin/courses/" + coursename);
