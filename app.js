@@ -204,6 +204,23 @@ app.post("/:schoolname", function(req, res) {
     }
 })
 
+// reset password route
+
+app.get('/:schoolname/reset_password',function(req,res){
+    res.render("reset_password",{message:"",school:req.params.schoolname});
+})
+
+app.post('/:schoolname/reset_password',function(req,res){
+    if(req.body.new_pass == req.body.conf_pass){
+        req.user.changePassword(req.body.curr_pass, req.body.new_pass, function(err){
+            console.log(err);
+        })
+        res.redirect("/"+req.params.schoolname);
+    }
+    else{
+        res.render("reset_password",{message:"Password doesn't matches",school:req.params.schoolname});
+    }
+})
 
 //Admin Dashboard route
 app.get("/:schoolname/admin/dashboard", function(req, res) {
