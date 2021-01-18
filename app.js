@@ -68,6 +68,7 @@ const userSchema = new mongoose.Schema({
         enum: ['professor', 'admin', 'student'],
         default: 'student'
     },
+    courses: [],
 });
 
 
@@ -211,7 +212,7 @@ app.get("/:schoolname/admin/dashboard", function(req, res) {
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
         School.findOne({ shortname: schoolname }, function(err, find) {
             Course.find({ schoolid: find._id }, function(err, found) {
-                res.render("admin_dash", { school: schoolname, courses: found, message: "" });
+                res.render("admin_dash", { school: schoolname, courses: found, no_student:find.studentid.length , no_professor:find.professorid.length ,message: "" });
             })
         })
     } else {
@@ -247,7 +248,9 @@ app.get("/:schoolname/professor/dashboard", function(req, res) {
     const schoolname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "professor" && req.user.schoolshort == schoolname) {
-        res.render("professor_dash", { school: schoolname })
+        Course.find({professorid:{$in: [String(req.user._id)]}}, function (err, find) {
+            res.render("professor_dash", { school: schoolname,courses:find})
+        });
     } else {
         res.redirect("/" + schoolname);
     }
@@ -259,7 +262,9 @@ app.get("/:schoolname/student/dashboard", function(req, res) {
     const schoolname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "student" && req.user.schoolshort == schoolname) {
-        res.render("student_dash", { school: schoolname })
+        Course.find({studentid:{$in:[String(req.user._id)]}}, function (err, find) {
+            res.render("student_dash", { school: schoolname, courses:find})
+        });
     } else {
         res.redirect("/" + schoolname);
     }
@@ -483,6 +488,12 @@ app.post("/:schoolname/admin/courses/:coursename", function(req, res) {
         if (button == "assignprof") {
             res.redirect("/" + schoolname + "/admin/courses/" + coursename + "/assignprof");
         }
+        if (button == "removeprof") {
+            res.redirect("/" + schoolname + "/admin/courses/" + coursename + "/removeprof");
+        }
+        if (button == "removestudent") {
+            res.redirect("/" + schoolname + "/admin/courses/" + coursename + "/removestudent");
+        }
     } else {
         res.redirect("/" + schoolname);
     }
@@ -546,11 +557,78 @@ app.post("/:schoolname/admin/courses/:coursename/assignprof", function(req, res)
 
                 for (var i = 0; i < professors.length; i++) {
                     found.professorid.push(professors[i]);
+                    User.findOne({_id : professors[i]},function (err, user) {
+                        user.courses.push(found._id);
+                        user.save(function(){});                        
+                    })
                 }
                 found.save(function() {
                     res.redirect("/" + schoolname + "/admin/courses/" + coursename);
                 })
             })
+        })
+    } else {
+        res.redirect("/" + schoolname);
+    }
+})
+
+//removing Professor route
+app.get("/:schoolname/admin/courses/:coursename/removeprof", function(req, res) {
+    const schoolname = req.params.schoolname;
+    const coursename = req.params.coursename;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
+        School.findOne({ shortname: schoolname }, function(err, found) {
+
+            Course.findOne({ coursename: coursename, schoolid: found._id }, function(err, find) {
+                if (find) {
+
+                    var professorsid = find.professorid;
+                    User.find({ _id: { $in: professorsid } }, function(err, founded) {
+                        var professors = []
+                        for (var i = 0; i < founded.length; i++) {
+                            professors.push(founded[i]);
+                        }
+
+                        res.render("remove_prof", {
+                            school: schoolname,
+                            coursename: coursename,
+                            professors: professors,
+                            message: ""
+                        });
+                    })
+
+                } else {
+                    res.render("error404");
+                }
+            })
+        })
+
+    } else {
+        res.redirect("/" + schoolname);
+    }
+})
+
+app.post("/:schoolname/admin/courses/:coursename/removeprof", function (req, res) {
+    const schoolname = req.params.schoolname;
+    const coursename = req.params.coursename;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
+        var professors = req.body.profname;
+
+        if (typeof professors == "string") {
+            professors = [];
+            professors.push(req.body.profname);
+        }
+        School.findOne({shortname: schoolname}, function (err, find) {
+     
+            for (var i = 0; i < professors.length; i++) {
+                var prof_id = professors[i];
+                Course.findOneAndUpdate({coursename: coursename,schoolid: find._id},{$pull: {professorid: professors[i]}}, function(err, founded){
+                    User.findOneAndUpdate({_id: prof_id},{$pull: {courses: {$in : founded._id}}}, function(err, found){});
+                });    
+            }
+            res.redirect("/" + schoolname + "/admin/courses/" + coursename);
         })
     } else {
         res.redirect("/" + schoolname);
@@ -614,6 +692,10 @@ app.post("/:schoolname/admin/courses/:coursename/enrollstudent", function(req, r
 
                 for (var i = 0; i < students.length; i++) {
                     found.studentid.push(students[i]);
+                    User.findOne({_id : students[i]},function (err, user) {
+                        user.courses.push(found._id);
+                        user.save(function(){});                        
+                    })
                 }
                 found.save(function() {
                     res.redirect("/" + schoolname + "/admin/courses/" + coursename);
@@ -625,6 +707,67 @@ app.post("/:schoolname/admin/courses/:coursename/enrollstudent", function(req, r
     }
 })
 
+//Remove Student route
+app.get("/:schoolname/admin/courses/:coursename/removestudent", function(req, res) {
+    const schoolname = req.params.schoolname;
+    const coursename = req.params.coursename;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
+        School.findOne({ shortname: schoolname }, function(err, found) {
+
+            Course.findOne({ coursename: coursename, schoolid: found._id }, function(err, find) {
+                if (find) {
+                    var studentid = find.studentid;
+
+                    User.find({ _id: { $in: studentid } }, function(err, founded) {
+                        var students = []
+                        for (var i = 0; i < founded.length; i++) {
+                            students.push(founded[i]);
+                        }
+
+                        res.render("remove_student", {
+                            school: schoolname,
+                            coursename: coursename,
+                            students: students,
+                            message: ""
+                        });
+                    });
+
+                } else {
+                    res.render("error404");
+                };
+            });
+        });
+
+    } else {
+        res.redirect("/" + schoolname);
+    }
+})
+
+app.post("/:schoolname/admin/courses/:coursename/removestudent", function(req, res) {
+    const schoolname = req.params.schoolname;
+    const coursename = req.params.coursename;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
+        var students = req.body.studentname;
+
+        if (typeof students == "string") {
+            students = [];
+            students.push(req.body.studentname)
+        }
+        School.findOne({ shortname: schoolname }, function(err, find) {
+            for (var i = 0; i < students.length; i++) {
+                var stud_id=students[i];
+                Course.findOneAndUpdate({coursename: coursename, schoolid: find._id},{$pull: {studentid: students[i]}}, function(err, founded){
+                    User.findOneAndUpdate({_id: stud_id},{$pull: {courses: {$in : founded._id}}}, function(err, found){});
+                });
+            };
+            res.redirect("/" + schoolname + "/admin/courses/" + coursename);
+            });
+    } else {
+        res.redirect("/" + schoolname);
+    };
+})
 
 // Server Hosting
 app.listen(3000, function() {
