@@ -488,6 +488,7 @@ app.post("/:schoolname/admin/courses/:coursename", function(req, res) {
     }
 })
 
+// exploring github
 
 //Assigning Professor route
 app.get("/:schoolname/admin/courses/:coursename/assignprof", function(req, res) {
