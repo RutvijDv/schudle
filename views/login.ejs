@@ -1,33 +1,53 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <link rel="stylesheet" href="/css/login.css">
-    <link rel="stylesheet" href="/css/homepage.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Kaushan+Script">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="/css/dashboard.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/fontawesome5-overrides.min.css">
 </head>
-<body class="text-center" style="background-color: #f5f4f4;">
 
+<body class="bg-gradient-primary">
+    <br><br>
     <div class="container">
-        <span class="welcomeheading text-center">Welcome to <%= school %></span>
-        <form class="form-signin" method="POST" id="login_form">
-            <h1 class="h3 mb-3 font-weight-normal">Sign in</h1>
-            <label for="inputEmail" class="sr-only">Email address</label>
-            <input type="text" name="username" id="inputEmail" class="form-control" placeholder="Username" required autofocus>
-            <label for="inputPassword" class="sr-only">Password</label>
-            <input type="password" name="password" id="inputPassword" class="form-control" placeholder="Password" required>
-            <p style="color: red;text-align: left !important;">
-                *<%=message%>
-            </p>
-            <button class="btn btn-lg btn-primary btn-block" type="submit" name="button" value="login">Sign in</button>
-          </form>
-    </div>
+        <div class="card shadow-lg o-hidden border-0 my-5">
+            <div class="card-body p-0">
+                <div class="row">
+                    <div class="col-lg-5 d-none d-lg-flex">
+                        <div class="flex-grow-1 bg-register-image" style="background-image: url(&quot;/images/university.jpg&quot;);"></div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="p-5">
+                            <div class="text-center">
+                                <br>
+                                <h4 class="text-dark mb-4">Welcome to <%= school %></h4>
+                            </div>
+                            <form class="user" id="login_form" method="POST">
+                                <div class="form-group"><input class="form-control form-control-user" type="text"  placeholder="Username" name="username" required></div>
+                                <div class="form-group row">
+                                    <div class="col-sm-12 mb-6 mb-sm-0"><input class="form-control form-control-user" type="password"  placeholder="Password" name="password" required></div>
+                                    <p style="color: red;">
+                                        *<%=message%>
+                                    </p>
+                                </div><button class="btn btn-primary btn-block text-white btn-user" type="submit" name="button" value="login" >Login</button>
+                            </form>
+                            <div class="text-center"><a class="small" href="forgot-password.html">Forgot Password?</a></div>
+                            <br><br><br><br></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
+        <script src="/javascript/dashboard.min.js"></script>
 </body>
+
 </html>
