@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Couse Content</title>
+</head>
+<body>
+    <h1>Welcome to <%=found.coursename%></h1>
+    <% found.items.forEach(function(item){ %>
+        <p><%= item.name %></p>
+        <a href="<%=item.link%>">Click here</a>
+    <% }) %>
+
+    <h4>Professors</h4>
+    <%professors.forEach(function(profs){%>
+        <%=profs%><br>
+            <% })%>
+    
+            <h4>Students</h4>
+            <%students.forEach(function(student){%>
+                <%=student%><br>
+                    <% })%>
+
+    <form action="/<%=school%>/<%=found._id%>/add_course_cont" method="GET">
+        <button type="submit">Add content</button>
+    </form>
+</body>
+</html>

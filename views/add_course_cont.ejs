@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Content</title>
+</head>
+<body>
+    <form action="/<%=school%>/<%=course_id%>/add_course_cont" method="POST">
+        <label>Content name: </label>
+        <input type="text" name="content_name">
+        <label>Content link:</label>
+        <input type="text" name="content_link">
+        <button type="submit">Add</button>
+    </form>
+</body>
+</html>
