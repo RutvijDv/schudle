@@ -243,13 +243,14 @@ app.get('/:schoolname/:course_id',function(req,res){
             User.find({ _id: { $in: allids } }, function(err, founded) {
                 var professors = [];
                 var students = [];
-
                 for (var i = 0; i < founded.length; i++) {
                     if (founded[i].role == "student") students.push(founded[i].username);
                     if (founded[i].role == "professor") professors.push(founded[i].username);
                 }
                 if(req.user.role == "professor"){
                     res.render("course_page_prof",{school: req.params.schoolname, found:found, students:students, professors:professors});
+                }else if(req.user.role == "student"){
+                    res.render("course_page_stud",{school: req.params.schoolname, found:found, students:students, professors:professors});
                 }
             })
             
