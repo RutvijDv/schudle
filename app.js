@@ -41,11 +41,18 @@ app.use(passport.session());
 
 
 //Creating Schema
+
+const courseItemSchema = new mongoose.Schema({
+    name: String,
+    link: String,
+})
+
 const courseSchema = new mongoose.Schema({
     schoolid: String,
     coursename: String,
     professorid: [],
     studentid: [],
+    items: [courseItemSchema],
 });
 
 const schoolSchema = new mongoose.Schema({
@@ -205,7 +212,6 @@ app.post("/:schoolname", function(req, res) {
 })
 
 // reset password route
-
 app.get('/:schoolname/reset_password',function(req,res){
     res.render("reset_password",{message:"",school:req.params.schoolname});
 })
@@ -219,6 +225,68 @@ app.post('/:schoolname/reset_password',function(req,res){
     }
     else{
         res.render("reset_password",{message:"Password doesn't matches",school:req.params.schoolname});
+    }
+})
+
+// open course page
+app.get('/:schoolname/:course_id',function(req,res){
+    Course.findOne({_id: req.params.course_id},function(err,found){
+        if(found){
+            var professorid;
+            var studentid;
+            if (found.professorid) professorid = found.professorid;
+            if (found.studentid) studentid = found.studentid;
+
+            var allids = professorid.concat(studentid);
+
+            
+            User.find({ _id: { $in: allids } }, function(err, founded) {
+                var professors = [];
+                var students = [];
+                for (var i = 0; i < founded.length; i++) {
+                    if (founded[i].role == "student") students.push(founded[i].username);
+                    if (founded[i].role == "professor") professors.push(founded[i].username);
+                }
+                if(req.user.role == "professor"){
+                    res.render("course_page_prof",{school: req.params.schoolname, found:found, students:students, professors:professors});
+                }else if(req.user.role == "student"){
+                    res.render("course_page_stud",{school: req.params.schoolname, found:found, students:students, professors:professors});
+                }
+            })
+            
+        }else{
+            console.log("not found");
+        }
+        if(err){
+            console.log(err);    
+        }
+    })
+})
+
+// add course content
+
+app.get('/:schoolname/:course_id/add_course_cont',function(req,res){
+    res.render("add_course_cont",{school:req.params.schoolname, course_id : req.params.course_id});
+})
+
+app.post('/:schoolname/:course_id/add_course_cont',function(req,res){
+    if(req.isAuthenticated() && req.user.role == "professor"){
+        Course.findOne({_id:req.params.course_id},function(err,found){
+            if(err){
+                console.log(err);
+            }
+            if(found){
+                found.items.push({name: req.body.content_name, link:"https://"+req.body.content_link});
+                found.save(function(err){
+                    if(!err){
+                        res.redirect("/"+req.params.schoolname+"/"+req.params.course_id);
+                    }
+                    console.log(err);
+                })
+            }else{
+                console.log("not found");
+            }
+        })
     }
 })
 

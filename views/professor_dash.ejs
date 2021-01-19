@@ -12,9 +12,13 @@
         <%=school%>
     </h1>
     <h3>No. of Courses :<%= courses.length %></h3>
+    
     <%courses.forEach(function(course){ %>
-        <p><%= course.coursename %> </p>
+        <form action="/<%=school%>/<%= course.id %>" method="GET">
+        <button type="submit" "><%= course.coursename %></button>
+        </form>
     <%})%>
+    
     <form action="/<%=school%>" method="POST" id="logout">
         <button type="submit" name="button" value="logout">Logout</button>
     </form>
@@ -22,6 +26,8 @@
     <form action="/<%=school%>/reset_password" method="GET" id="logout">
         <button type="submit" name="button">Reset Password</button>
     </form>
+
+    
     
 </body>
 
