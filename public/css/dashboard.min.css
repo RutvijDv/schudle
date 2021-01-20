@@ -170,6 +170,12 @@ a:hover {
   color: #252525;
   text-decoration: none;
 }
+a.success-link:hover{
+  color: #159668;
+}
+a.danger-link:hover{
+  color: #bb2205;
+}
 a:not([href]):not([class]),
 a:not([href]):not([class]):hover {
   color: inherit;
@@ -9454,8 +9460,6 @@ a:focus {
 }
 .sidebar #sidebarToggle:after {
   font-weight: 900;
-  content: "\f104";
-  font-family: Font Awesome\5 Free;
   margin-right: 0.1rem;
 }
 .sidebar #sidebarToggle:hover {
@@ -9469,8 +9473,6 @@ a:focus {
   overflow: hidden;
 }
 .sidebar.toggled #sidebarToggle:after {
-  content: "\f105";
-  font-family: Font Awesome\5 Free;
   margin-left: 0.25rem;
 }
 .sidebar .sidebar-brand {
