@@ -213,18 +213,29 @@ app.post("/:schoolname", function(req, res) {
 
 // reset password route
 app.get('/:schoolname/reset_password',function(req,res){
-    res.render("reset_password",{message:"",school:req.params.schoolname});
+    const schoolname = req.params.schoolname;
+    
+    if (req.isAuthenticated()) {
+        res.render("reset_password",{message:"",school:req.params.schoolname});
+    }else{
+        res.redirect("/"+ schoolname)
+    }
 })
 
 app.post('/:schoolname/reset_password',function(req,res){
-    if(req.body.new_pass == req.body.conf_pass){
-        req.user.changePassword(req.body.curr_pass, req.body.new_pass, function(err){
-            console.log(err);
-        })
-        res.redirect("/"+req.params.schoolname);
-    }
-    else{
-        res.render("reset_password",{message:"Password doesn't matches",school:req.params.schoolname});
+    if (req.isAuthenticated()) {
+        if (req.body.new_pass == req.body.conf_pass) {
+            req.user.changePassword(req.body.curr_pass, req.body.new_pass, function (err) {
+                if (err) {
+                    console.log(err);
+                    res.send('<script>alert("Your Current Password is incorrect.Please enter the correct password."); window.history.go(-1);</script>');
+                } else {
+                    res.send('<script>alert("password updated successfully"); window.history.go(-2);</script>');
+                }
+            })
+        } else {
+            res.send('<script>alert("Password confirmation doesn\'t match the password"); window.history.go(-1);</script>');
+        }
     }
 })
 
@@ -583,8 +594,6 @@ app.post("/:schoolname/admin/courses/:coursename", function(req, res) {
         res.redirect("/" + schoolname);
     }
 })
-
-// exploring github
 
 //Assigning Professor route
 app.get("/:schoolname/admin/courses/:coursename/assignprof", function(req, res) {
