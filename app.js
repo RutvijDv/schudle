@@ -138,7 +138,48 @@ app.get("/register", function (req, res) {
 });
 
 app.post("/register", function (req, res) {
-    if (req.body.val == "schoolname") {
+    var schoolname = req.body.schoolname;
+    var shortname = req.body.shortname;
+    var schoolemail = req.body.schoolemail;
+    var adminusername = req.body.adminusername;
+
+    const school = new School({
+        schoolname: schoolname,
+        shortname: shortname,
+        schoolemail: schoolemail,
+        adminusername: adminusername,
+    })
+
+    User.register({
+        username: adminusername,
+        schoolname: schoolname,
+        role: "admin",
+        schoolshort: shortname,
+    }, req.body.password, function (err) {
+        if (err) {
+            console.log(err);
+            res.send({
+                message: "school not saved"
+            });
+        } else {
+            school.save(function (err) {
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        message: "admin not saved"
+                    });
+                }
+                res.send({
+                    message: "all saved"
+                });
+            });
+        }
+    })
+})
+
+app.post("/register-validation", function (req, res) {
+    var val = req.body.val;
+    if (val == "schoolname") {
         School.findOne({
             schoolname: req.body.data
         }, function (err, f) {
@@ -156,7 +197,7 @@ app.post("/register", function (req, res) {
             }
         })
     }
-    if (req.body.val == "schoolemail") {
+    if (val == "schoolemail") {
         School.findOne({
             schoolemail: req.body.data
         }, function (err, f) {
@@ -174,7 +215,7 @@ app.post("/register", function (req, res) {
             }
         })
     }
-    if (req.body.val == "shortname") {
+    if (val == "shortname") {
         School.findOne({
             shortname: req.body.data
         }, function (err, f) {
@@ -192,14 +233,13 @@ app.post("/register", function (req, res) {
             }
         })
     }
-    if (req.body.val == "adminusername") {
+    if (val == "adminusername") {
 
         User.findOne({
             username: req.body.data
         }, function (err, f) {
             if (err) console.log(err);
             else {
-                console.log(f);
                 if (f) {
                     res.send({
                         message: "taken"

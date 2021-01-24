@@ -46,11 +46,11 @@
             </div>
             <div class="row">
                 <div class="col-lg-12">
-                    <form action="/register" method="POST">
+                    <form id="register-form" method="POST" onsubmit='sub(event)'>
                         <div class="form-row">
                             <div class="form-group col-md-12">
                                 <label for="schoolname">School Name</label>
-                                <input type="text" id="schoolname" class="form-control" name="schoolname"
+                                <input type="text" id="schoolname" class="form-control register-input" name="schoolname"
                                     placeholder="Provide your School Name" required>
                                 <div id="schoolname-feedback" class="invalid-feedback" style="display: none;">
                                     *This School is already registered.
@@ -60,8 +60,8 @@
                         <div class="form-row">
                             <div class="form-group col-md-12">
                                 <label for="schoolemail">School Email</label>
-                                <input type="text" id="schoolemail" class="form-control" name="schoolemail"
-                                    placeholder="Provide your School Emailid" required>
+                                <input type="email" id="schoolemail" class="form-control register-input"
+                                    name="schoolemail" placeholder="Provide your School Emailid" required>
                                 <div id="schoolemail-feedback" class="invalid-feedback" style="display: none;">
                                     *This email is already registered.
                                 </div>
@@ -70,7 +70,7 @@
                         <div class="form-row">
                             <div class="form-group col-md-12">
                                 <label for="shortname">School Short Name</label>
-                                <input type="text" id="shortname" class="form-control" name="shortname"
+                                <input type="text" id="shortname" class="form-control register-input" name="shortname"
                                     placeholder="Please provide short name of your school" required>
                                 <div id="shortname-feedback" class="invalid-feedback" style="display: none;">
                                     *This shortname is already registered.
@@ -80,24 +80,20 @@
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label for="adminusername">Admin Username</label>
-                                <input type="text" class="form-control" id="adminusername" name="adminusername"
-                                    placeholder="Username" required>
+                                <input type="email" class="form-control register-input" id="adminusername"
+                                    name="adminusername" placeholder="Username" required>
                                 <div id="adminusername-feedback" class="invalid-feedback" style="display: none;">
                                     *This user is already registered.
                                 </div>
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="password">Admin Password</label>
-                                <input type="password" class="form-control" id="password" name="password"
+                                <input type="password" class="form-control register-input" id="password" name="password"
                                     placeholder="Password" required>
                             </div>
                         </div>
-
-
-                        <p style="color: red;">
-                            *<%=message%>
-                        </p>
-                        <button type="submit" class="btn btn-primary btn-xl" name="register">Register</button>
+                        <button type="submit" id="register" class="btn btn-primary btn-xl"
+                            name="register">Register</button>
                     </form>
                 </div>
             </div>
@@ -132,33 +128,62 @@
     <script src="/javascript/homepage.min.js"></script>
     <script src="https://kit.fontawesome.com/eb9e477f45.js" crossorigin="anonymous"></script>
     <script>
+        function sub(event) {
+            event.preventDefault();
+            var input = $('.register-input');
+
+            var flag = true;
+
+            for (var i = 0; i < input.length; i++) {
+                if (input[i].classList.contains("is-invalid")) flag = false;
+            }
+
+            if (flag) {
+                $.ajax({
+                    url: '/register',
+                    type: 'post',
+                    data: {
+                        schoolname: $('#schoolname').val(),
+                        shortname: $('#shortname').val(),
+                        schoolemail: $('#schoolemail').val(),
+                        adminusername: $('#adminusername').val(),
+                        password: $('#password').val(),
+                    },
+                    success: function (response) {
+                        if (response.message == "all saved") {
+                            window.location.replace("/" + $('#shortname').val());
+                        } else {
+                            window.location.reload();
+                        }
+                    }
+                });
+            }
+        }
+
         $('document').ready(function () {
             var typingTimer;
             var doneTypingInterval = 100;
-            var $input = $('.form-control');
+            var input = $('.register-input');
 
-            $input.on('keyup', function (event) {
+            input.on('keyup', function (event) {
                 clearTimeout(typingTimer);
                 typingTimer = setTimeout(call(event.target.name), doneTypingInterval);
             });
 
-            $input.on('keydown', function () {
+            input.on('keydown', function () {
                 clearTimeout(typingTimer);
             });
 
             function call(field) {
-                console.log(field);
                 var data = $('#' + field).val();
-                console.log(data);
                 $.ajax({
-                    url: '/register',
+                    url: '/register-validation',
                     type: 'post',
                     data: {
                         'val': field,
                         'data': data,
                     },
                     success: function (response) {
-                        console.log(response);
                         if (response.message == "taken") {
                             $('#' + field).addClass('is-invalid');
                             $('#' + field + "-feedback")[0].style.display = "block";
@@ -169,6 +194,9 @@
                     }
                 });
             }
+
+
+
         });
     </script>
 </body>
