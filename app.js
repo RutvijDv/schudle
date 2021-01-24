@@ -14,14 +14,19 @@ const app = express();
 
 
 //app use
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 app.use(bodyParser.json());
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
 
 
 //Creating database
-const db = mongoose.connect('mongodb://localhost:27017/schudle', { useNewUrlParser: true, useUnifiedTopology: true });
+const db = mongoose.connect('mongodb://localhost:27017/schudle', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
@@ -41,6 +46,13 @@ app.use(passport.session());
 
 
 //Creating Schema
+
+const reviewSchema = new mongoose.Schema({
+    name: String,
+    email: String,
+    phone: Number,
+    message: String,
+})
 
 const courseItemSchema = new mongoose.Schema({
     name: String,
@@ -87,6 +99,7 @@ userSchema.plugin(passportLocalMongoose);
 const School = new mongoose.model('School', schoolSchema);
 const User = new mongoose.model('User', userSchema);
 const Course = new mongoose.model('Course', courseSchema);
+const Review = new mongoose.model('Review', reviewSchema);
 
 
 //Creating Strategy for Authentication
@@ -98,17 +111,33 @@ passport.deserializeUser(User.deserializeUser());
 //Routes
 
 //Home route
-app.get("/", function(req, res) {
+app.get("/", function (req, res) {
     res.render("homepage");
 });
 
-
-//Register route
-app.get("/register", function(req, res) {
-    res.render("register", { message: "" });
+app.post("/", function (req, res) {
+    var button = req.body.button;
+    if (button == 'review') {
+        const review = new Review({
+            name: req.body.name,
+            email: req.body.email,
+            phone: req.body.number,
+            message: req.body.message,
+        });
+        review.save(function () {
+            res.redirect('/');
+        })
+    }
 });
 
-app.post("/register", function(req, res) {
+//Register route
+app.get("/register", function (req, res) {
+    res.render("register", {
+        message: ""
+    });
+});
+
+app.post("/register", function (req, res) {
     const schoolname = req.body.schoolname;
     const schoolemail = req.body.schoolemail;
     const username = req.body.username;
@@ -121,11 +150,15 @@ app.post("/register", function(req, res) {
         shortname: shortname
     });
 
-    School.findOne({ schoolemail: schoolemail }, function(err, found) {
+    School.findOne({
+        schoolemail: schoolemail
+    }, function (err, found) {
         if (found) {
-            res.render("register", { message: "School Already Exist with given email" });
+            res.render("register", {
+                message: "School Already Exist with given email"
+            });
         } else {
-            newSchool.save(function(err) {
+            newSchool.save(function (err) {
                 if (err) {
                     console.log(err);
                 }
@@ -136,7 +169,7 @@ app.post("/register", function(req, res) {
                 schoolname: schoolname,
                 role: "admin",
                 schoolshort: shortname
-            }, req.body.password, function(err, user) {
+            }, req.body.password, function (err, user) {
                 if (err) {
                     console.log(err);
                     res.redirect("/register");
@@ -151,42 +184,58 @@ app.post("/register", function(req, res) {
 
 
 //Custom School login/logout route
-app.get("/:schoolname", function(req, res) {
+app.get("/:schoolname", function (req, res) {
     const schoolname = req.params.schoolname;
 
-    School.findOne({ shortname: schoolname }, function(err, found) {
+    School.findOne({
+        shortname: schoolname
+    }, function (err, found) {
         if (!found) {
             res.render("error404");
         } else {
-            res.render("login", { school: schoolname, message: "" });
+            res.render("login", {
+                school: schoolname,
+                message: ""
+            });
         }
     })
 });
 
-app.post("/:schoolname", function(req, res) {
+app.post("/:schoolname", function (req, res) {
     const username = req.body.username;
     const schoolname = req.params.schoolname;
     const button = req.body.button;
 
     if (button == "login") {
-        User.findOne({ username: username }, function(err, found) {
+        User.findOne({
+            username: username
+        }, function (err, found) {
             if (!found) {
-                res.render("login", { school: schoolname, message: "User Not found" })
+                res.render("login", {
+                    school: schoolname,
+                    message: "User Not found"
+                })
             } else {
                 if (found.schoolshort == schoolname) {
                     const user = new User({
                         username: username,
                         password: req.body.password
                     })
-                    req.login(user, function(err) {
+                    req.login(user, function (err) {
                         if (err) {
                             console.log(err);
-                            res.render("login", { school: schoolname, message: "Bad Credentials" })
+                            res.render("login", {
+                                school: schoolname,
+                                message: "Bad Credentials"
+                            })
                         } else {
-                            passport.authenticate("local", function(err, user, info) {
+                            passport.authenticate("local", function (err, user, info) {
                                 if (info) {
                                     req.session.destroy();
-                                    res.render("login", { school: schoolname, message: "Bad Credentials" })
+                                    res.render("login", {
+                                        school: schoolname,
+                                        message: "Bad Credentials"
+                                    })
                                 } else {
                                     if (found.role === "admin") {
                                         res.redirect("/" + schoolname + "/admin/dashboard");
@@ -196,11 +245,14 @@ app.post("/:schoolname", function(req, res) {
                                         res.redirect("/" + schoolname + "/student/dashboard");
                                     }
                                 };
-                            })(req, res, function() {});
+                            })(req, res, function () {});
                         }
                     })
                 } else {
-                    res.render("login", { school: schoolname, message: "User Not found" })
+                    res.render("login", {
+                        school: schoolname,
+                        message: "User Not found"
+                    })
                 }
             }
         })
@@ -212,17 +264,20 @@ app.post("/:schoolname", function(req, res) {
 })
 
 // reset password route
-app.get('/:schoolname/reset_password',function(req,res){
+app.get('/:schoolname/reset_password', function (req, res) {
     const schoolname = req.params.schoolname;
-    
+
     if (req.isAuthenticated()) {
-        res.render("reset_password",{message:"",school:req.params.schoolname});
-    }else{
-        res.redirect("/"+ schoolname)
+        res.render("reset_password", {
+            message: "",
+            school: req.params.schoolname
+        });
+    } else {
+        res.redirect("/" + schoolname)
     }
 })
 
-app.post('/:schoolname/reset_password',function(req,res){
+app.post('/:schoolname/reset_password', function (req, res) {
     if (req.isAuthenticated()) {
         if (req.body.new_pass == req.body.conf_pass) {
             req.user.changePassword(req.body.curr_pass, req.body.new_pass, function (err) {
@@ -240,9 +295,11 @@ app.post('/:schoolname/reset_password',function(req,res){
 })
 
 // open course page
-app.get('/:schoolname/:course_id',function(req,res){
-    Course.findOne({_id: req.params.course_id},function(err,found){
-        if(found){
+app.get('/:schoolname/:course_id', function (req, res) {
+    Course.findOne({
+        _id: req.params.course_id
+    }, function (err, found) {
+        if (found) {
             var professorid;
             var studentid;
             if (found.professorid) professorid = found.professorid;
@@ -250,51 +307,73 @@ app.get('/:schoolname/:course_id',function(req,res){
 
             var allids = professorid.concat(studentid);
 
-            
-            User.find({ _id: { $in: allids } }, function(err, founded) {
+
+            User.find({
+                _id: {
+                    $in: allids
+                }
+            }, function (err, founded) {
                 var professors = [];
                 var students = [];
                 for (var i = 0; i < founded.length; i++) {
                     if (founded[i].role == "student") students.push(founded[i].username);
                     if (founded[i].role == "professor") professors.push(founded[i].username);
                 }
-                if(req.user.role == "professor"){
-                    res.render("course_page_prof",{school: req.params.schoolname, found:found, students:students, professors:professors});
-                }else if(req.user.role == "student"){
-                    res.render("course_page_stud",{school: req.params.schoolname, found:found, students:students, professors:professors});
+                if (req.user.role == "professor") {
+                    res.render("course_page_prof", {
+                        school: req.params.schoolname,
+                        found: found,
+                        students: students,
+                        professors: professors
+                    });
+                } else if (req.user.role == "student") {
+                    res.render("course_page_stud", {
+                        school: req.params.schoolname,
+                        found: found,
+                        students: students,
+                        professors: professors
+                    });
                 }
             })
-            
-        }else{
+
+        } else {
             console.log("not found");
         }
-        if(err){
-            console.log(err);    
+        if (err) {
+            console.log(err);
         }
     })
 })
 
 // add course content
 
-app.get('/:schoolname/:course_id/add_course_cont',function(req,res){
-    res.render("add_course_cont",{school:req.params.schoolname, course_id : req.params.course_id});
+app.get('/:schoolname/:course_id/add_course_cont', function (req, res) {
+    res.render("add_course_cont", {
+        school: req.params.schoolname,
+        course_id: req.params.course_id
+    });
 })
 
-app.post('/:schoolname/:course_id/add_course_cont',function(req,res){
-    if(req.isAuthenticated() && req.user.role == "professor"){
-        Course.findOne({_id:req.params.course_id},function(err,found){
-            if(err){
+app.post('/:schoolname/:course_id/add_course_cont', function (req, res) {
+    if (req.isAuthenticated() && req.user.role == "professor") {
+        Course.findOne({
+            _id: req.params.course_id
+        }, function (err, found) {
+            if (err) {
                 console.log(err);
             }
-            if(found){
-                found.items.push({name: req.body.content_name, link:"https://"+req.body.content_link});
-                found.save(function(err){
-                    if(!err){
-                        res.redirect("/"+req.params.schoolname+"/"+req.params.course_id);
+            if (found) {
+                found.items.push({
+                    name: req.body.content_name,
+                    link: "https://" + req.body.content_link
+                });
+                found.save(function (err) {
+                    if (!err) {
+                        res.redirect("/" + req.params.schoolname + "/" + req.params.course_id);
                     }
                     console.log(err);
                 })
-            }else{
+            } else {
                 console.log("not found");
             }
         })
@@ -302,13 +381,23 @@ app.post('/:schoolname/:course_id/add_course_cont',function(req,res){
 })
 
 //Admin Dashboard route
-app.get("/:schoolname/admin/dashboard", function(req, res) {
+app.get("/:schoolname/admin/dashboard", function (req, res) {
     const schoolname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
-        School.findOne({ shortname: schoolname }, function(err, find) {
-            Course.find({ schoolid: find._id }, function(err, found) {
-                res.render("admin_dash", { school: schoolname, courses: found, no_student:find.studentid.length , no_professor:find.professorid.length ,message: "" });
+        School.findOne({
+            shortname: schoolname
+        }, function (err, find) {
+            Course.find({
+                schoolid: find._id
+            }, function (err, found) {
+                res.render("admin_dash", {
+                    school: schoolname,
+                    courses: found,
+                    no_student: find.studentid.length,
+                    no_professor: find.professorid.length,
+                    message: ""
+                });
             })
         })
     } else {
@@ -316,7 +405,7 @@ app.get("/:schoolname/admin/dashboard", function(req, res) {
     }
 })
 
-app.post("/:schoolname/admin/dashboard", function(req, res) {
+app.post("/:schoolname/admin/dashboard", function (req, res) {
     const schoolname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
@@ -340,12 +429,19 @@ app.post("/:schoolname/admin/dashboard", function(req, res) {
 
 
 //Professor Dashboard route
-app.get("/:schoolname/professor/dashboard", function(req, res) {
+app.get("/:schoolname/professor/dashboard", function (req, res) {
     const schoolname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "professor" && req.user.schoolshort == schoolname) {
-        Course.find({professorid:{$in: [String(req.user._id)]}}, function (err, find) {
-            res.render("professor_dash", { school: schoolname,courses:find})
+        Course.find({
+            professorid: {
+                $in: [String(req.user._id)]
+            }
+        }, function (err, find) {
+            res.render("professor_dash", {
+                school: schoolname,
+                courses: find
+            })
         });
     } else {
         res.redirect("/" + schoolname);
@@ -354,12 +450,19 @@ app.get("/:schoolname/professor/dashboard", function(req, res) {
 
 
 //Student Dashboard Route
-app.get("/:schoolname/student/dashboard", function(req, res) {
+app.get("/:schoolname/student/dashboard", function (req, res) {
     const schoolname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "student" && req.user.schoolshort == schoolname) {
-        Course.find({studentid:{$in:[String(req.user._id)]}}, function (err, find) {
-            res.render("student_dash", { school: schoolname, courses:find})
+        Course.find({
+            studentid: {
+                $in: [String(req.user._id)]
+            }
+        }, function (err, find) {
+            res.render("student_dash", {
+                school: schoolname,
+                courses: find
+            })
         });
     } else {
         res.redirect("/" + schoolname);
@@ -368,42 +471,54 @@ app.get("/:schoolname/student/dashboard", function(req, res) {
 
 
 //Creating Professor route
-app.get("/:schoolname/admin/createprof", function(req, res) {
+app.get("/:schoolname/admin/createprof", function (req, res) {
     const schoolname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
-        res.render("create_prof", { school: schoolname, message: "" });
+        res.render("create_prof", {
+            school: schoolname,
+            message: ""
+        });
     } else {
         res.redirect("/" + schoolname);
     }
 })
 
-app.post("/:schoolname/admin/createprof", function(req, res) {
+app.post("/:schoolname/admin/createprof", function (req, res) {
     const link = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == link) {
         const schoolname = req.user.schoolname;
         const username = req.body.username;
 
-        User.findOne({ username: username }, function(err, found) {
+        User.findOne({
+            username: username
+        }, function (err, found) {
             if (found) {
-                res.render("create_prof", { school: link, message: "professor Already Exist" })
+                res.render("create_prof", {
+                    school: link,
+                    message: "professor Already Exist"
+                })
             } else {
                 User.register({
                     username: username,
                     schoolname: schoolname,
                     role: "professor",
                     schoolshort: link,
-                }, req.body.password, function(err, user) {
+                }, req.body.password, function (err, user) {
                     if (err) {
                         console.log(err);
                         res.redirect("/" + link);
                     } else {
-                        User.findOne({ username: username }, function(err, find) {
-                            School.findOne({ shortname: link }, function(err, founded) {
+                        User.findOne({
+                            username: username
+                        }, function (err, find) {
+                            School.findOne({
+                                shortname: link
+                            }, function (err, founded) {
                                 if (founded) {
                                     founded.professorid.push(find._id)
-                                    founded.save(function() {
+                                    founded.save(function () {
                                         res.redirect("/" + link + "/admin/dashboard");
                                     });
                                 }
@@ -421,42 +536,54 @@ app.post("/:schoolname/admin/createprof", function(req, res) {
 
 
 //Creating Student route
-app.get("/:schoolname/admin/createstudent", function(req, res) {
+app.get("/:schoolname/admin/createstudent", function (req, res) {
     const schoolname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
-        res.render("create_student", { school: schoolname, message: "" });
+        res.render("create_student", {
+            school: schoolname,
+            message: ""
+        });
     } else {
         res.redirect("/" + schoolname);
     }
 })
 
-app.post("/:schoolname/admin/createstudent", function(req, res) {
+app.post("/:schoolname/admin/createstudent", function (req, res) {
     const link = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == link) {
         const schoolname = req.user.schoolname;
         const username = req.body.username;
 
-        User.findOne({ username: username }, function(err, found) {
+        User.findOne({
+            username: username
+        }, function (err, found) {
             if (found) {
-                res.render("create_student", { school: link, message: "student Already Exist" })
+                res.render("create_student", {
+                    school: link,
+                    message: "student Already Exist"
+                })
             } else {
                 User.register({
                     username: username,
                     schoolname: schoolname,
                     role: "student",
                     schoolshort: link,
-                }, req.body.password, function(err, user) {
+                }, req.body.password, function (err, user) {
                     if (err) {
                         console.log(err);
                         res.redirect("/" + link);
                     } else {
-                        User.findOne({ username: username }, function(err, find) {
-                            School.findOne({ shortname: link }, function(err, founded) {
+                        User.findOne({
+                            username: username
+                        }, function (err, find) {
+                            School.findOne({
+                                shortname: link
+                            }, function (err, founded) {
                                 if (founded) {
                                     founded.studentid.push(find._id)
-                                    founded.save(function() {
+                                    founded.save(function () {
                                         res.redirect("/" + link + "/admin/dashboard");
                                     });
                                 }
@@ -474,23 +601,28 @@ app.post("/:schoolname/admin/createstudent", function(req, res) {
 
 
 //Creating course route
-app.get("/:schoolname/admin/createcourse", function(req, res) {
+app.get("/:schoolname/admin/createcourse", function (req, res) {
     const schoolname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
-        res.render("create_course", { school: schoolname, message: "" });
+        res.render("create_course", {
+            school: schoolname,
+            message: ""
+        });
     } else {
         res.redirect("/" + schoolname);
     }
 })
 
-app.post("/:schoolname/admin/createcourse", function(req, res) {
+app.post("/:schoolname/admin/createcourse", function (req, res) {
     const schoolname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
         const coursename = req.body.coursename;
 
-        School.findOne({ shortname: schoolname }, function(err, find) {
+        School.findOne({
+            shortname: schoolname
+        }, function (err, find) {
 
             const newCourse = new Course({
                 coursename: coursename,
@@ -500,7 +632,7 @@ app.post("/:schoolname/admin/createcourse", function(req, res) {
             Course.findOne({
                 schoolid: find._id,
                 coursename: coursename
-            }, function(err, found) {
+            }, function (err, found) {
 
                 if (found) {
                     res.render("create_course", {
@@ -508,10 +640,13 @@ app.post("/:schoolname/admin/createcourse", function(req, res) {
                         message: "Course Already Exist"
                     });
                 } else {
-                    newCourse.save(function() {
-                        Course.findOne({ schoolid: find._id, coursename: coursename }, function(err, founded) {
+                    newCourse.save(function () {
+                        Course.findOne({
+                            schoolid: find._id,
+                            coursename: coursename
+                        }, function (err, founded) {
                             find.courses.push(founded._id)
-                            find.save(function() {
+                            find.save(function () {
                                 res.redirect('/' + schoolname + "/admin/dashboard");
                             })
                         });
@@ -527,14 +662,19 @@ app.post("/:schoolname/admin/createcourse", function(req, res) {
 
 
 //Custom Course route
-app.get("/:schoolname/admin/courses/:coursename", function(req, res) {
+app.get("/:schoolname/admin/courses/:coursename", function (req, res) {
     const schoolname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
         const coursename = req.params.coursename;
 
-        School.findOne({ shortname: schoolname }, function(err, find) {
-            Course.findOne({ coursename: coursename, schoolid: find._id }, function(err, found) {
+        School.findOne({
+            shortname: schoolname
+        }, function (err, find) {
+            Course.findOne({
+                coursename: coursename,
+                schoolid: find._id
+            }, function (err, found) {
                 if (found) {
                     var professorid;
                     var studentid;
@@ -544,7 +684,11 @@ app.get("/:schoolname/admin/courses/:coursename", function(req, res) {
 
                     var allids = professorid.concat(studentid);
 
-                    User.find({ _id: { $in: allids } }, function(err, founded) {
+                    User.find({
+                        _id: {
+                            $in: allids
+                        }
+                    }, function (err, founded) {
                         var professors = [];
                         var students = [];
 
@@ -571,7 +715,7 @@ app.get("/:schoolname/admin/courses/:coursename", function(req, res) {
     }
 })
 
-app.post("/:schoolname/admin/courses/:coursename", function(req, res) {
+app.post("/:schoolname/admin/courses/:coursename", function (req, res) {
     const schoolname = req.params.schoolname;
     const coursename = req.params.coursename;
 
@@ -596,21 +740,30 @@ app.post("/:schoolname/admin/courses/:coursename", function(req, res) {
 })
 
 //Assigning Professor route
-app.get("/:schoolname/admin/courses/:coursename/assignprof", function(req, res) {
+app.get("/:schoolname/admin/courses/:coursename/assignprof", function (req, res) {
     const schoolname = req.params.schoolname;
     const coursename = req.params.coursename;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
-        School.findOne({ shortname: schoolname }, function(err, found) {
+        School.findOne({
+            shortname: schoolname
+        }, function (err, found) {
 
-            Course.findOne({ coursename: coursename, schoolid: found._id }, function(err, find) {
+            Course.findOne({
+                coursename: coursename,
+                schoolid: found._id
+            }, function (err, find) {
                 if (find) {
                     var a = found.professorid;
                     var b = find.professorid;
 
                     var professorsid = a.filter(x => !b.includes(x));
 
-                    User.find({ _id: { $in: professorsid } }, function(err, founded) {
+                    User.find({
+                        _id: {
+                            $in: professorsid
+                        }
+                    }, function (err, founded) {
                         var professors = []
                         for (var i = 0; i < founded.length; i++) {
                             professors.push(founded[i]);
@@ -635,7 +788,7 @@ app.get("/:schoolname/admin/courses/:coursename/assignprof", function(req, res) 
     }
 })
 
-app.post("/:schoolname/admin/courses/:coursename/assignprof", function(req, res) {
+app.post("/:schoolname/admin/courses/:coursename/assignprof", function (req, res) {
     const schoolname = req.params.schoolname;
     const coursename = req.params.coursename;
 
@@ -646,17 +799,24 @@ app.post("/:schoolname/admin/courses/:coursename/assignprof", function(req, res)
             professors = [];
             professors.push(req.body.profname)
         }
-        School.findOne({ shortname: schoolname }, function(err, find) {
-            Course.findOne({ coursename: coursename, schoolid: find._id }, function(err, found) {
+        School.findOne({
+            shortname: schoolname
+        }, function (err, find) {
+            Course.findOne({
+                coursename: coursename,
+                schoolid: find._id
+            }, function (err, found) {
 
                 for (var i = 0; i < professors.length; i++) {
                     found.professorid.push(professors[i]);
-                    User.findOne({_id : professors[i]},function (err, user) {
+                    User.findOne({
+                        _id: professors[i]
+                    }, function (err, user) {
                         user.courses.push(found._id);
-                        user.save(function(){});                        
+                        user.save(function () {});
                     })
                 }
-                found.save(function() {
+                found.save(function () {
                     res.redirect("/" + schoolname + "/admin/courses/" + coursename);
                 })
             })
@@ -667,18 +827,27 @@ app.post("/:schoolname/admin/courses/:coursename/assignprof", function(req, res)
 })
 
 //removing Professor route
-app.get("/:schoolname/admin/courses/:coursename/removeprof", function(req, res) {
+app.get("/:schoolname/admin/courses/:coursename/removeprof", function (req, res) {
     const schoolname = req.params.schoolname;
     const coursename = req.params.coursename;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
-        School.findOne({ shortname: schoolname }, function(err, found) {
+        School.findOne({
+            shortname: schoolname
+        }, function (err, found) {
 
-            Course.findOne({ coursename: coursename, schoolid: found._id }, function(err, find) {
+            Course.findOne({
+                coursename: coursename,
+                schoolid: found._id
+            }, function (err, find) {
                 if (find) {
 
                     var professorsid = find.professorid;
-                    User.find({ _id: { $in: professorsid } }, function(err, founded) {
+                    User.find({
+                        _id: {
+                            $in: professorsid
+                        }
+                    }, function (err, founded) {
                         var professors = []
                         for (var i = 0; i < founded.length; i++) {
                             professors.push(founded[i]);
@@ -714,13 +883,30 @@ app.post("/:schoolname/admin/courses/:coursename/removeprof", function (req, res
             professors = [];
             professors.push(req.body.profname);
         }
-        School.findOne({shortname: schoolname}, function (err, find) {
-     
+        School.findOne({
+            shortname: schoolname
+        }, function (err, find) {
+
             for (var i = 0; i < professors.length; i++) {
                 var prof_id = professors[i];
-                Course.findOneAndUpdate({coursename: coursename,schoolid: find._id},{$pull: {professorid: professors[i]}}, function(err, founded){
-                    User.findOneAndUpdate({_id: prof_id},{$pull: {courses: {$in : founded._id}}}, function(err, found){});
-                });    
+                Course.findOneAndUpdate({
+                    coursename: coursename,
+                    schoolid: find._id
+                }, {
+                    $pull: {
+                        professorid: professors[i]
+                    }
+                }, function (err, founded) {
+                    User.findOneAndUpdate({
+                        _id: prof_id
+                    }, {
+                        $pull: {
+                            courses: {
+                                $in: founded._id
+                            }
+                        }
+                    }, function (err, found) {});
+                });
             }
             res.redirect("/" + schoolname + "/admin/courses/" + coursename);
         })
@@ -731,21 +917,30 @@ app.post("/:schoolname/admin/courses/:coursename/removeprof", function (req, res
 
 
 //Enrolling Student route
-app.get("/:schoolname/admin/courses/:coursename/enrollstudent", function(req, res) {
+app.get("/:schoolname/admin/courses/:coursename/enrollstudent", function (req, res) {
     const schoolname = req.params.schoolname;
     const coursename = req.params.coursename;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
-        School.findOne({ shortname: schoolname }, function(err, found) {
+        School.findOne({
+            shortname: schoolname
+        }, function (err, found) {
 
-            Course.findOne({ coursename: coursename, schoolid: found._id }, function(err, find) {
+            Course.findOne({
+                coursename: coursename,
+                schoolid: found._id
+            }, function (err, find) {
                 if (find) {
                     var a = found.studentid;
                     var b = find.studentid;
 
                     var studentid = a.filter(x => !b.includes(x));
 
-                    User.find({ _id: { $in: studentid } }, function(err, founded) {
+                    User.find({
+                        _id: {
+                            $in: studentid
+                        }
+                    }, function (err, founded) {
                         var students = []
                         for (var i = 0; i < founded.length; i++) {
                             students.push(founded[i]);
@@ -770,7 +965,7 @@ app.get("/:schoolname/admin/courses/:coursename/enrollstudent", function(req, re
     }
 })
 
-app.post("/:schoolname/admin/courses/:coursename/enrollstudent", function(req, res) {
+app.post("/:schoolname/admin/courses/:coursename/enrollstudent", function (req, res) {
     const schoolname = req.params.schoolname;
     const coursename = req.params.coursename;
 
@@ -781,17 +976,24 @@ app.post("/:schoolname/admin/courses/:coursename/enrollstudent", function(req, r
             students = [];
             students.push(req.body.studentname)
         }
-        School.findOne({ shortname: schoolname }, function(err, find) {
-            Course.findOne({ coursename: coursename, schoolid: find._id }, function(err, found) {
+        School.findOne({
+            shortname: schoolname
+        }, function (err, find) {
+            Course.findOne({
+                coursename: coursename,
+                schoolid: find._id
+            }, function (err, found) {
 
                 for (var i = 0; i < students.length; i++) {
                     found.studentid.push(students[i]);
-                    User.findOne({_id : students[i]},function (err, user) {
+                    User.findOne({
+                        _id: students[i]
+                    }, function (err, user) {
                         user.courses.push(found._id);
-                        user.save(function(){});                        
+                        user.save(function () {});
                     })
                 }
-                found.save(function() {
+                found.save(function () {
                     res.redirect("/" + schoolname + "/admin/courses/" + coursename);
                 })
             })
@@ -802,18 +1004,27 @@ app.post("/:schoolname/admin/courses/:coursename/enrollstudent", function(req, r
 })
 
 //Remove Student route
-app.get("/:schoolname/admin/courses/:coursename/removestudent", function(req, res) {
+app.get("/:schoolname/admin/courses/:coursename/removestudent", function (req, res) {
     const schoolname = req.params.schoolname;
     const coursename = req.params.coursename;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
-        School.findOne({ shortname: schoolname }, function(err, found) {
+        School.findOne({
+            shortname: schoolname
+        }, function (err, found) {
 
-            Course.findOne({ coursename: coursename, schoolid: found._id }, function(err, find) {
+            Course.findOne({
+                coursename: coursename,
+                schoolid: found._id
+            }, function (err, find) {
                 if (find) {
                     var studentid = find.studentid;
 
-                    User.find({ _id: { $in: studentid } }, function(err, founded) {
+                    User.find({
+                        _id: {
+                            $in: studentid
+                        }
+                    }, function (err, founded) {
                         var students = []
                         for (var i = 0; i < founded.length; i++) {
                             students.push(founded[i]);
@@ -838,7 +1049,7 @@ app.get("/:schoolname/admin/courses/:coursename/removestudent", function(req, re
     }
 })
 
-app.post("/:schoolname/admin/courses/:coursename/removestudent", function(req, res) {
+app.post("/:schoolname/admin/courses/:coursename/removestudent", function (req, res) {
     const schoolname = req.params.schoolname;
     const coursename = req.params.coursename;
 
@@ -849,21 +1060,38 @@ app.post("/:schoolname/admin/courses/:coursename/removestudent", function(req, r
             students = [];
             students.push(req.body.studentname)
         }
-        School.findOne({ shortname: schoolname }, function(err, find) {
+        School.findOne({
+            shortname: schoolname
+        }, function (err, find) {
             for (var i = 0; i < students.length; i++) {
-                var stud_id=students[i];
-                Course.findOneAndUpdate({coursename: coursename, schoolid: find._id},{$pull: {studentid: students[i]}}, function(err, founded){
-                    User.findOneAndUpdate({_id: stud_id},{$pull: {courses: {$in : founded._id}}}, function(err, found){});
+                var stud_id = students[i];
+                Course.findOneAndUpdate({
+                    coursename: coursename,
+                    schoolid: find._id
+                }, {
+                    $pull: {
+                        studentid: students[i]
+                    }
+                }, function (err, founded) {
+                    User.findOneAndUpdate({
+                        _id: stud_id
+                    }, {
+                        $pull: {
+                            courses: {
+                                $in: founded._id
+                            }
+                        }
+                    }, function (err, found) {});
                 });
             };
             res.redirect("/" + schoolname + "/admin/courses/" + coursename);
-            });
+        });
     } else {
         res.redirect("/" + schoolname);
     };
 })
 
 // Server Hosting
-app.listen(3000, function() {
+app.listen(3000, function () {
     console.log("server started");
 })
