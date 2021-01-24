@@ -138,12 +138,68 @@ app.get("/register", function (req, res) {
 });
 
 app.post("/register", function (req, res) {
-    if (req.body.val1) {
+    if (req.body.val == "schoolname") {
         School.findOne({
-            schoolname: req.body.schoolname
+            schoolname: req.body.data
         }, function (err, f) {
             if (err) console.log(err);
             else {
+                if (f) {
+                    res.send({
+                        message: "taken"
+                    });
+                } else {
+                    res.send({
+                        message: "not taken"
+                    });
+                }
+            }
+        })
+    }
+    if (req.body.val == "schoolemail") {
+        School.findOne({
+            schoolemail: req.body.data
+        }, function (err, f) {
+            if (err) console.log(err);
+            else {
+                if (f) {
+                    res.send({
+                        message: "taken"
+                    });
+                } else {
+                    res.send({
+                        message: "not taken"
+                    });
+                }
+            }
+        })
+    }
+    if (req.body.val == "shortname") {
+        School.findOne({
+            shortname: req.body.data
+        }, function (err, f) {
+            if (err) console.log(err);
+            else {
+                if (f) {
+                    res.send({
+                        message: "taken"
+                    });
+                } else {
+                    res.send({
+                        message: "not taken"
+                    });
+                }
+            }
+        })
+    }
+    if (req.body.val == "adminusername") {
+
+        User.findOne({
+            username: req.body.data
+        }, function (err, f) {
+            if (err) console.log(err);
+            else {
+                console.log(f);
                 if (f) {
                     res.send({
                         message: "taken"
