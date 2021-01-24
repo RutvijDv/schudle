@@ -138,49 +138,26 @@ app.get("/register", function (req, res) {
 });
 
 app.post("/register", function (req, res) {
-    const schoolname = req.body.schoolname;
-    const schoolemail = req.body.schoolemail;
-    const username = req.body.username;
-    const shortname = req.body.shortname;
-
-    const newSchool = new School({
-        schoolname: schoolname,
-        schoolemail: schoolemail,
-        adminusername: username,
-        shortname: shortname
-    });
-
-    School.findOne({
-        schoolemail: schoolemail
-    }, function (err, found) {
-        if (found) {
-            res.render("register", {
-                message: "School Already Exist with given email"
-            });
-        } else {
-            newSchool.save(function (err) {
-                if (err) {
-                    console.log(err);
-                }
-            });
-
-            User.register({
-                username: username,
-                schoolname: schoolname,
-                role: "admin",
-                schoolshort: shortname
-            }, req.body.password, function (err, user) {
-                if (err) {
-                    console.log(err);
-                    res.redirect("/register");
+    if (req.body.val1) {
+        School.findOne({
+            schoolname: req.body.schoolname
+        }, function (err, f) {
+            if (err) console.log(err);
+            else {
+                if (f) {
+                    res.send({
+                        message: "taken"
+                    });
                 } else {
-                    res.redirect("/" + shortname);
+                    res.send({
+                        message: "not taken"
+                    });
                 }
-            })
-        }
-    })
-
+            }
+        })
+    }
 });
+
 
 
 //Custom School login/logout route

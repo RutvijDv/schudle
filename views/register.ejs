@@ -5,19 +5,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Schuddle-Register your school</title>
-    <link rel="stylesheet" href="/css/homepage.min.css">    
+    <link rel="stylesheet" href="/css/homepage.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Kaushan+Script">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700">
 </head>
+
 <body id="#page-top">
     <nav class="navbar navbar-dark navbar-expand-lg fixed-top bg-dark" id="mainNav">
-        <div class="container"><a class="navbar-brand" href="#page-top">Schudle</a><button data-toggle="collapse" data-target="#navbarResponsive" class="navbar-toggler navbar-toggler-right" type="button" data-toogle="collapse" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><i class="fa fa-bars"></i></button>
+        <div class="container"><a class="navbar-brand" href="#page-top">Schudle</a><button data-toggle="collapse"
+                data-target="#navbarResponsive" class="navbar-toggler navbar-toggler-right" type="button"
+                data-toogle="collapse" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation"><i class="fa fa-bars"></i></button>
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="nav navbar-nav ml-auto text-uppercase">
                     <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#" style="color:  #fed136 !important;">Register</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" style="color:  #fed136 !important;">Register</a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -45,32 +50,40 @@
                         <div class="form-row">
                             <div class="form-group col-md-12">
                                 <label for="schoolname">School Name</label>
-                                <input type="text" id="schoolname" class="form-control" name="schoolname" placeholder="Provide your School Name" required>
+                                <input type="text" id="schoolname" class="form-control" name="schoolname"
+                                    placeholder="Provide your School Name" required>
+                                <div id="schoolname-feedback" class="invalid-feedback" style="display: none;">
+                                    *This School is already registered.
+                                </div>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-12">
                                 <label for="schoolemail">School Email</label>
-                                <input type="text" id="schoolemail" class="form-control" name="schoolemail" placeholder="Provide your School Emailid" required>
+                                <input type="text" id="schoolemail" class="form-control" name="schoolemail"
+                                    placeholder="Provide your School Emailid" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label for="adminusername">Admin Username</label>
-                                <input type="text" class="form-control" id="adminusername" name="username" placeholder="Username" required>
+                                <input type="text" class="form-control" id="adminusername" name="username"
+                                    placeholder="Username" required>
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="password">Admin Password</label>
-                                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                                <input type="password" class="form-control" id="password" name="password"
+                                    placeholder="Password" required>
                             </div>
                         </div>
                         <div class="form-row">
-                            
+
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-12">
                                 <label for="shortname">School Short Name</label>
-                                <input type="text" id="shortname" class="form-control" name="shortname" placeholder="Please provide short name of your school" required>
+                                <input type="text" id="shortname" class="form-control" name="shortname"
+                                    placeholder="Please provide short name of your school" required>
                             </div>
                         </div>
                         <p style="color: red;">
@@ -82,7 +95,7 @@
             </div>
         </div>
     </section>
-    
+
 
     <footer class="bg-light">
         <div class="container">
@@ -110,7 +123,31 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
     <script src="/javascript/homepage.min.js"></script>
     <script src="https://kit.fontawesome.com/eb9e477f45.js" crossorigin="anonymous"></script>
+    <script>
+        $('document').ready(function () {
+            $('#schoolname').blur(function () {
+                var schoolname = $('#schoolname').val();
 
+                $.ajax({
+                    url: '/register',
+                    type: 'post',
+                    data: {
+                        'val1': true,
+                        'schoolname': schoolname,
+                    },
+                    success: function (response) {
+                        if (response.message == "taken") {
+                            $("#schoolname").addClass('is-invalid');
+                            $("#schoolname-feedback")[0].style.display = "block";
+                        } else {
+                            $("#schoolname").removeClass('is-invalid');
+                            $("#schoolname-feedback")[0].style.display = "none";
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>
