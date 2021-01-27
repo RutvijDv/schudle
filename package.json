@@ -1,7 +1,6 @@
 {
   "name": "multiplelogin",
   "version": "1.0.0",
-  "description": "",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,9 +15,20 @@
     "express-session": "^1.17.1",
     "lodash": "^4.17.20",
     "mongoose": "^5.11.10",
+    "nodemailer": "^6.4.17",
     "nodemon": "^2.0.7",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^6.0.1"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VARSY5/schudle.git"
+  },
+  "bugs": {
+    "url": "https://github.com/VARSY5/schudle/issues"
+  },
+  "homepage": "https://github.com/VARSY5/schudle#readme",
+  "description": ""
 }

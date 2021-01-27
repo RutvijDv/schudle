@@ -7,7 +7,27 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const passport = require('passport');
 const passportLocalMongoose = require('passport-local-mongoose');
+const nodemailer = require('nodemailer'); 
+const crypto = require('crypto');
 
+const algorithm = 'aes-256-ctr';
+const secretKey = process.env.SECRETKEY; // length must be 32.
+const iv = crypto.randomBytes(16);
+
+const encrypt = (text) => {
+    const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
+    const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
+    return {
+        iv: iv.toString('hex'),
+        content: encrypted.toString('hex')
+    };
+};
+
+const decrypt = (hash) => {
+    const decipher = crypto.createDecipheriv(algorithm, secretKey, Buffer.from(hash.iv, 'hex'));
+    const decrpyted = Buffer.concat([decipher.update(Buffer.from(hash.content, 'hex')), decipher.final()]);
+    return decrpyted.toString();
+};
 
 //express app
 const app = express();
@@ -79,7 +99,6 @@ const schoolSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
     username: String,
-    password: String,
     schoolname: String,
     schoolshort: String,
     role: {
@@ -107,6 +126,14 @@ passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+//Creating Transporter for NodeMailr
+var transporter = nodemailer.createTransport({
+    service:'gmail',
+    auth: {
+      user: process.env.EMAIL, // generated ethereal user
+      pass: process.env.PASSWORD, // generated ethereal password
+    },
+  });
 
 //Routes
 
@@ -254,7 +281,132 @@ app.post("/register-validation", function (req, res) {
     }
 });
 
+//forgot password
+app.get("/:schoolname/forgot-password", function (req, res) {
+    const schoolname = req.params.schoolname;
 
+    res.render('forgot-password', {
+        school: schoolname,
+        message: ""
+    });
+})
+
+app.post("/:schoolname/forgot-password", function (req, res) {
+    const schoolname = req.params.schoolname;
+    const username = req.body.username;
+    const userEmail = req.body.email;
+
+    User.findOne({
+        username: username,
+        schoolname: schoolname
+    }, function (err, found) {
+        if (found) {
+            time = (Date.now() + 900000).toString();
+            linkString = schoolname + "-" + userEmail + "-" + username + "-" + time;
+            hasedLink = encrypt(linkString);
+            token = hasedLink.iv + "-" + hasedLink.content;
+
+            var mailOptions = {
+                from: process.env.EMAIL,
+                to: userEmail,
+                subject: 'Forgot Password',
+
+                html: '<p>Click <a href="http://localhost:3000/recover-password/' + token + '">here</a> to reset your password</p>'
+            };
+
+            transporter.sendMail(mailOptions, function (err, info) {
+                if (err) {
+                    console.log(err);
+                }
+                res.send("<script>alert('Reset-Password link sent to Your Email. The link will expiries within 15min. Please setup your New Passsword. '); window.history.go(-2);</script>");
+            })
+        } else {
+            res.send("<script>alert('User is not enrolled in this School.'); window.history.go(-2);</script>");
+        }
+
+    })
+})
+
+//Password Recovery route
+app.get("/recover-password/:token", function (req, res) {
+    const token = req.params.token;
+    const haseString = token.toString().split("-");
+    const hase = {
+        iv: haseString[0].toString(),
+        content: haseString[1].toString()
+    }
+    const linkString = decrypt(hase).split("-");
+    const schoolname = linkString[0];
+    const username = linkString[2];
+    const time = linkString[3];
+    if (time > Date.now()) {
+        User.findOne({
+            username: username,
+            schoolname: schoolname
+        }, function (err, user) {
+            if (user) {
+                res.render("recover-password", {
+                    token: token,
+                    message: ""
+                });
+            } else {
+                //user not found in school. Somthing goes Wrong
+                res.render('error404')
+            }
+        })
+    } else(
+        //link expired
+        res.render('error404')
+    )
+})
+
+app.post("/recover-password/:token", function (req, res) {
+    const token = req.params.token;
+    const haseString = token.toString().split("-");
+    const hase = {
+        iv: haseString[0].toString(),
+        content: haseString[1].toString()
+    }
+    const linkString = decrypt(hase).split("-");
+    const schoolname = linkString[0];
+    const username = linkString[2];
+    const time = linkString[3];
+    if (time > Date.now()) {
+        User.findOne({
+            username: username,
+            schoolname: schoolname
+        }, function (err, user) {
+            if (user) {
+                user.setPassword(req.body.password, function (err, updatedUser) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    if (updatedUser) {
+                        updatedUser.save(function (err) {
+                            if (err) {
+                                console.log(err);
+                            }
+                        });
+                        console.log("user updated sucessfully");
+                    }
+                })
+                console.log(user);
+                user.save(function (err) {
+                    if (err) {
+                        console.log(err);
+                    }
+                });
+                res.redirect("/" + schoolname);
+            } else {
+                //user not found in school. Somthing goes Wrong
+                res.render('error404')
+            }
+        })
+    } else(
+        //link expired
+        res.render('error404')
+    )
+})
 
 //Custom School login/logout route
 app.get("/:schoolname", function (req, res) {
