@@ -7,7 +7,7 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const passport = require('passport');
 const passportLocalMongoose = require('passport-local-mongoose');
-const nodemailer = require('nodemailer'); 
+const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
 const algorithm = 'aes-256-ctr';
@@ -128,12 +128,12 @@ passport.deserializeUser(User.deserializeUser());
 
 //Creating Transporter for NodeMailr
 var transporter = nodemailer.createTransport({
-    service:'gmail',
+    service: 'gmail',
     auth: {
-      user: process.env.EMAIL, // generated ethereal user
-      pass: process.env.PASSWORD, // generated ethereal password
+        user: process.env.EMAIL, // generated ethereal user
+        pass: process.env.PASSWORD, // generated ethereal password
     },
-  });
+});
 
 //Routes
 
@@ -165,7 +165,7 @@ app.get("/register", function (req, res) {
 });
 
 app.post("/register", function (req, res) {
-    var schoolname = req.body.schoolname;
+    var schoolname = _.capitalize(req.body.schoolname);
     var shortname = req.body.shortname;
     var schoolemail = req.body.schoolemail;
     var adminusername = req.body.adminusername;
@@ -208,7 +208,7 @@ app.post("/register-validation", function (req, res) {
     var val = req.body.val;
     if (val == "schoolname") {
         School.findOne({
-            schoolname: req.body.data
+            schoolname: _.capitalize(req.body.data.trim()),
         }, function (err, f) {
             if (err) console.log(err);
             else {
@@ -226,7 +226,7 @@ app.post("/register-validation", function (req, res) {
     }
     if (val == "schoolemail") {
         School.findOne({
-            schoolemail: req.body.data
+            schoolemail: req.body.data.trim()
         }, function (err, f) {
             if (err) console.log(err);
             else {
@@ -244,7 +244,7 @@ app.post("/register-validation", function (req, res) {
     }
     if (val == "shortname") {
         School.findOne({
-            shortname: req.body.data
+            shortname: req.body.data.trim()
         }, function (err, f) {
             if (err) console.log(err);
             else {
@@ -263,7 +263,7 @@ app.post("/register-validation", function (req, res) {
     if (val == "adminusername") {
 
         User.findOne({
-            username: req.body.data
+            username: req.body.data.trim()
         }, function (err, f) {
             if (err) console.log(err);
             else {
@@ -436,9 +436,9 @@ app.post("/:schoolname", function (req, res) {
             username: username
         }, function (err, found) {
             if (!found) {
-                res.render("login", {
-                    school: schoolname,
-                    message: "User Not found"
+
+                res.send({
+                    message: "User not found"
                 })
             } else {
                 if (found.schoolshort == schoolname) {
@@ -449,34 +449,37 @@ app.post("/:schoolname", function (req, res) {
                     req.login(user, function (err) {
                         if (err) {
                             console.log(err);
-                            res.render("login", {
-                                school: schoolname,
+                            res.send({
                                 message: "Bad Credentials"
                             })
                         } else {
                             passport.authenticate("local", function (err, user, info) {
                                 if (info) {
                                     req.session.destroy();
-                                    res.render("login", {
-                                        school: schoolname,
+                                    res.send({
                                         message: "Bad Credentials"
                                     })
                                 } else {
                                     if (found.role === "admin") {
-                                        res.redirect("/" + schoolname + "/admin/dashboard");
+                                        res.send({
+                                            message: "admin"
+                                        })
                                     } else if (found.role === "professor") {
-                                        res.redirect("/" + schoolname + "/professor/dashboard");
+                                        res.send({
+                                            message: "professor"
+                                        })
                                     } else if (found.role === "student") {
-                                        res.redirect("/" + schoolname + "/student/dashboard");
+                                        res.send({
+                                            message: "student"
+                                        })
                                     }
                                 };
                             })(req, res, function () {});
                         }
                     })
                 } else {
-                    res.render("login", {
-                        school: schoolname,
-                        message: "User Not found"
+                    res.send({
+                        message: "User not found"
                     })
                 }
             }
