@@ -11,12 +11,28 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const multer = require('multer');
 const path = require('path');
-
+const { google } = require('googleapis');
+const credentials = require('./drive-credential.json');
+const fs = require('fs');
+const { file } = require('googleapis/build/src/apis/file');
+var uniqid = require('uniqid');
 
 const algorithm = 'aes-256-ctr';
 const secretKey = process.env.SECRETKEY; // length must be 32.
 const iv = crypto.randomBytes(16);
 
+
+// drive configuration 
+const scopes = [
+    'https://www.googleapis.com/auth/drive'
+  ];
+
+const auth = new google.auth.JWT(
+    credentials.client_email, null,
+    credentials.private_key, scopes
+);
+
+const drive = google.drive({ version: "v3", auth });
 
 
 const encrypt = (text) => {
@@ -81,7 +97,7 @@ const reviewSchema = new mongoose.Schema({
 
 const courseItemSchema = new mongoose.Schema({
     name: String,
-    link: String,
+    google_id: String
 })
 
 const courseSchema = new mongoose.Schema({
@@ -593,15 +609,40 @@ app.get('/:schoolname/:course_id', function (req, res) {
 // add course content
 
 app.get('/:schoolname/:course_id/add_course_cont', function (req, res) {
+    drive.files.list({}, (err, res) => {
+    if (err) throw err;
+    const files = res.data.files;
+    if (files.length) {
+    files.map((file) => {
+      console.log(file);
+    });
+    } else {
+      console.log('No files found');
+    }})
+    // drive.files.delete({
+    //     fileId: "1EgCb6oEJYXYPXVsfV7Azwofrw5ROSxyG",
+    //   })
+    //   .then(
+    //     async function (response) {
+    //       console.log("success");
+    //     },
+    //     function (err) {
+    //       console.log(err);
+    //     }
+    //   );
+//  });
     res.render("add_course_cont", {
         school: req.params.schoolname,
         course_id: req.params.course_id
     });
+    
 })
 
+
+
 app.post('/:schoolname/:course_id/add_course_cont',uploadDisk.single("file") ,function (req, res) {
-    console.log(req.body);
-    console.log(req.file);
+    // console.log(req.body);
+    // console.log(req.file);
     if (req.isAuthenticated() && req.user.role == "professor") {
         Course.findOne({
             _id: req.params.course_id
@@ -610,16 +651,53 @@ app.post('/:schoolname/:course_id/add_course_cont',uploadDisk.single("file") ,fu
                 console.log(err);
             }
             if (found) {
-                found.items.push({
-                    name: req.body.content_name,
-                    link: "https://" + req.body.content_link
-                });
-                found.save(function (err) {
-                    if (!err) {
-                        res.redirect("/" + req.params.schoolname + "/" + req.params.course_id);
+                let fileid = uniqid();
+                var filedet;
+                var fileMetadata = {
+                    name: req.body.content_name, // file name that will be saved in google drive
+                  }; 
+                var media = {
+                    mimeType: req.file.mimetype,
+                    body: fs.createReadStream(req.file.destination+'/'+req.file.filename), // Reading the file from our server
+                };
+
+                drive.files.create(
+                    {
+                      resource: fileMetadata,
+                      media: media,
+                      appProperties: {
+                        additionalID: fileid,
+                      }
+                    },
+                    function (err, file) {
+                      if (err) {
+                        // Handle error
+                        console.error(err.msg);
+                      } 
+                      else {
+                        // if file upload success then return the unique google drive id
+                        console.log("sucess");
+                        fs.unlink(req.file.destination+'/'+req.file.filename, (err) => {
+                            if (err) {
+                              console.error(err)
+                              return
+                        }})
+                        // console.log(file);
+                        filedet = file;
+                        found.items.push({
+                            name: req.body.content_name,
+                            google_id: file.data.id
+                        });
+                        found.save(function (err) {
+                            if (!err) {
+                                res.redirect("/" + req.params.schoolname + "/" + req.params.course_id);
+                            }
+                            console.log(err);
+                        })
+                      }
                     }
-                    console.log(err);
-                })
+                );
+                
             } else {
                 console.log("not found");
             }
