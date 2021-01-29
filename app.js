@@ -16,6 +16,7 @@ const credentials = require('./drive-credential.json');
 const fs = require('fs');
 const { file } = require('googleapis/build/src/apis/file');
 var uniqid = require('uniqid');
+const mime = require('mime-types');
 
 const algorithm = 'aes-256-ctr';
 const secretKey = process.env.SECRETKEY; // length must be 32.
@@ -97,7 +98,8 @@ const reviewSchema = new mongoose.Schema({
 
 const courseItemSchema = new mongoose.Schema({
     name: String,
-    google_id: String
+    google_id: String,
+    extension: String
 })
 
 const courseSchema = new mongoose.Schema({
@@ -619,18 +621,6 @@ app.get('/:schoolname/:course_id/add_course_cont', function (req, res) {
     } else {
       console.log('No files found');
     }})
-    // drive.files.delete({
-    //     fileId: "1EgCb6oEJYXYPXVsfV7Azwofrw5ROSxyG",
-    //   })
-    //   .then(
-    //     async function (response) {
-    //       console.log("success");
-    //     },
-    //     function (err) {
-    //       console.log(err);
-    //     }
-    //   );
-//  });
     res.render("add_course_cont", {
         school: req.params.schoolname,
         course_id: req.params.course_id
@@ -686,7 +676,8 @@ app.post('/:schoolname/:course_id/add_course_cont',uploadDisk.single("file") ,fu
                         filedet = file;
                         found.items.push({
                             name: req.body.content_name,
-                            google_id: file.data.id
+                            google_id: file.data.id,
+                            extension: mime.extension(file.data.mimeType)
                         });
                         found.save(function (err) {
                             if (!err) {
@@ -703,6 +694,91 @@ app.post('/:schoolname/:course_id/add_course_cont',uploadDisk.single("file") ,fu
             }
         })
     }
+})
+
+// Download content file
+
+app.post('/:schoolname/download/:filename/:fileid',function(req,res){
+    var fileId = req.params.fileid;
+    var dest = fs.createWriteStream('./public/downloads/'+req.params.filename);
+     drive.files
+    .get({ fileId, alt: 'media' }, { responseType: 'stream' })
+    .then((driveResponse) => {
+      driveResponse.data
+        .on('end', () => {
+          console.log('\nDone downloading file.');
+          const file = "./public/downloads/"+req.params.filename; // file path from where node.js will send file to the requested user
+          res.download(file); // Set disposition and send it.
+        //   fs.unlink('./public/downloads/'+req.params.filename, (err) => {
+        //     if (err) {
+        //       console.error(err)
+        //       return
+        // }})
+        })
+        .on('error', (err) => {
+          console.error('Error downloading file.');
+        })
+        .pipe(dest);
+    })
+});
+
+// delete course content
+
+app.get('/:schoolname/:course_id/delete_course_cont', function (req, res) {
+    
+    Course.findOne({
+        _id:req.params.course_id,
+    },function(err,found){
+        if(err){
+            console.log(err);
+        }if(found){
+            res.render("delete_course_cont", {
+                school: req.params.schoolname,
+                course_id: req.params.course_id,
+                found : found,
+            });
+        }
+        else{
+            res.render("error404");
+        }
+    }) 
+});
+
+app.post('/:schoolname/:course_id/delete_course_cont',function(req,res){
+    Course.findOne({
+        _id: req.params.course_id
+    },function(err,found){
+        if(err){
+            console.log(err);
+        }
+        if(found){
+            // console.log(Array.isArray(req.body.delete));
+           found.items.forEach(function(item,i){
+                if(item._id == req.body.delete){
+                    drive.files.delete({
+                        fileId: item.google_id,
+                      })
+                      .then(
+                        async function (response) {
+                          console.log("success");
+                        },
+                        function (err) {
+                          console.log(err);
+                        }
+                    );
+                    found.items.splice(i,1);
+                }
+            })
+        }
+            found.save(function (err) {
+                if (!err) {
+                    res.redirect("/" + req.params.schoolname + "/" + req.params.course_id);
+                }
+                console.log(err);
+            })
+        }
+    )
+    
 })
 
 //Admin Dashboard route
@@ -1417,6 +1493,6 @@ app.post("/:schoolname/admin/courses/:coursename/removestudent", function (req, 
 })
 
 // Server Hosting
-app.listen(5000, function () {
+app.listen(3000, function () {
     console.log("server started");
 })

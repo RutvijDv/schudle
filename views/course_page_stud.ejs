@@ -8,8 +8,10 @@
 <body>
     <h1>Welcome to <%=found.coursename%></h1>
     <% found.items.forEach(function(item){ %>
-        <p><%= item.name %></p>
-        <a href="<%=item.link%>">Click here</a>
+        <label><%= item.name %></label>
+        <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="POST">
+            <button type="submit"> download </button>
+        </form>
     <% }) %>
 
     <h4>Professors</h4>
