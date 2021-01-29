@@ -9,10 +9,15 @@ const passport = require('passport');
 const passportLocalMongoose = require('passport-local-mongoose');
 const nodemailer = require('nodemailer'); 
 const crypto = require('crypto');
+const multer = require('multer');
+const path = require('path');
+
 
 const algorithm = 'aes-256-ctr';
 const secretKey = process.env.SECRETKEY; // length must be 32.
 const iv = crypto.randomBytes(16);
+
+
 
 const encrypt = (text) => {
     const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
@@ -134,6 +139,21 @@ var transporter = nodemailer.createTransport({
       pass: process.env.PASSWORD, // generated ethereal password
     },
   });
+
+
+// setting up multer
+var storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+      cb(null, "./public/uploads"); //here we specify the destination. in this case i specified the current directory
+    },
+    filename: function(req, file, cb) {
+      console.log(file); //log the file object info in console
+      cb(null, file.originalname);//here we specify the file saving name. in this case. 
+  //i specified the original file name .you can modify this name to anything you want
+    }
+  });
+  
+var uploadDisk = multer({ storage: storage });
 
 //Routes
 
@@ -579,7 +599,9 @@ app.get('/:schoolname/:course_id/add_course_cont', function (req, res) {
     });
 })
 
-app.post('/:schoolname/:course_id/add_course_cont', function (req, res) {
+app.post('/:schoolname/:course_id/add_course_cont',uploadDisk.single("file") ,function (req, res) {
+    console.log(req.body);
+    console.log(req.file);
     if (req.isAuthenticated() && req.user.role == "professor") {
         Course.findOne({
             _id: req.params.course_id
@@ -1317,6 +1339,6 @@ app.post("/:schoolname/admin/courses/:coursename/removestudent", function (req, 
 })
 
 // Server Hosting
-app.listen(3000, function () {
+app.listen(5000, function () {
     console.log("server started");
 })
