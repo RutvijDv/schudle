@@ -710,66 +710,84 @@ app.get("/:schoolname/student/dashboard", function (req, res) {
 app.get("/:schoolname/admin/createprof", function (req, res) {
     const schoolname = req.params.schoolname;
 
-    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
         res.render("create_prof", {
-            school: schoolname,
-            message: ""
+            shortname: shortname,
         });
     } else {
-        res.redirect("/" + schoolname);
+        res.redirect("/" + shortname);
     }
 })
 
 app.post("/:schoolname/admin/createprof", function (req, res) {
-    const link = req.params.schoolname;
+    const shortname = req.params.schoolname;
 
-    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == link) {
-        const schoolname = req.user.schoolname;
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
         const username = req.body.username;
+        const button = req.body.button;
 
-        User.findOne({
-            username: username
-        }, function (err, found) {
-            if (found) {
-                res.render("create_prof", {
-                    school: link,
-                    message: "professor Already Exist"
-                })
-            } else {
-                User.register({
-                    username: username,
-                    schoolname: schoolname,
-                    role: "professor",
-                    schoolshort: link,
-                }, req.body.password, function (err, user) {
-                    if (err) {
-                        console.log(err);
-                        res.redirect("/" + link);
-                    } else {
-                        User.findOne({
-                            username: username
-                        }, function (err, find) {
-                            School.findOne({
-                                shortname: link
-                            }, function (err, founded) {
-                                if (founded) {
-                                    founded.professorid.push(find._id)
-                                    founded.save(function () {
-                                        res.redirect("/" + link + "/admin/dashboard");
-                                    });
-                                }
-                            })
+        if (button == 'validate') {
+            User.findOne({
+                username: username
+            }, function (err, found) {
+                if (found) {
+                    res.send({
+                        message: 'User already exist',
+                    })
+                } else {
+                    res.send({
+                        message: 'User available',
+                    })
+                }
+            })
+        }
+
+
+        if (button == 'register') {
+            const firstname = req.body.firstname;
+            const lastname = req.body.lastname;
+            const schoolname = req.user.schoolname;
+            User.register({
+                username: username,
+                firstname: firstname,
+                lastname: lastname,
+                schoolname: schoolname,
+                role: "professor",
+                schoolshort: shortname,
+            }, req.body.password, function (err, user) {
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        message: 'User not saved',
+                    })
+                } else {
+                    User.findOne({
+                        username: username
+                    }, function (err, find) {
+                        School.findOne({
+                            shortname: shortname
+                        }, function (err, founded) {
+                            if (founded) {
+                                founded.professorid.push(find._id)
+                                founded.save(function () {
+                                    res.send({
+                                        message: 'User saved',
+                                    })
+                                });
+                            }
                         })
-                    }
-                })
-            }
-        })
-
+                    })
+                }
+            })
+        }
     } else {
-        res.redirect("/" + link);
+        res.send({
+            message: 'Uauthorised',
+        })
     }
 })
-
 
 //Creating Student route
 app.get("/:schoolname/admin/createstudent", function (req, res) {
@@ -846,7 +864,9 @@ app.post("/:schoolname/admin/createstudent", function (req, res) {
             })
         }
     } else {
-        res.redirect("/" + shortname);
+        res.send({
+            message: 'Uauthorised',
+        })
     }
 })
 

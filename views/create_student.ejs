@@ -98,12 +98,16 @@
                     },
                     success: function (response) {
                         console.log(response.message);
-                        if (response.message == 'User saved') {
-                            alert(username + " Registered");
-                            window.location.reload();
+                        if (response.message == 'Uauthorised') {
+                            window.location.replace("/" + shortname);
                         } else {
-                            alert("Student NOT registered");
-                            window.location.reload();
+                            if (response.message == 'User saved') {
+                                alert(username + " Registered");
+                                window.location.reload();
+                            } else {
+                                alert("Student NOT registered");
+                                window.location.reload();
+                            }
                         }
                     }
                 });
@@ -134,13 +138,16 @@
                         'username': data,
                     },
                     success: function (response) {
-
-                        if (response.message == "User already exist") {
-                            $('#username').addClass('is-invalid');
-                            $('#username-feedback')[0].style.display = "block";
+                        if (response.message == 'Uauthorised') {
+                            window.location.replace("/" + shortname);
                         } else {
-                            $('#username').removeClass('is-invalid');
-                            $('#username-feedback')[0].style.display = "none";
+                            if (response.message == "User already exist") {
+                                $('#username').addClass('is-invalid');
+                                $('#username-feedback')[0].style.display = "block";
+                            } else {
+                                $('#username').removeClass('is-invalid');
+                                $('#username-feedback')[0].style.display = "none";
+                            }
                         }
                     }
                 });
