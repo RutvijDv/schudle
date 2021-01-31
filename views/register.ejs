@@ -79,6 +79,16 @@
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
+                                <label for="adminfirstname">Admin FirstName</label>
+                                <input type="text" class="form-control register-input" id="adminfirstname"
+                                    name="adminfirstname" placeholder="Firstname" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="adminlastname">Admin LastName</label>
+                                <input type="text" class="form-control register-input" id="adminlastname"
+                                    name="adminlastname" placeholder="Lastname" required>
+                            </div>
+                            <div class="form-group col-md-6">
                                 <label for="adminusername">Admin Username</label>
                                 <input type="email" class="form-control register-input" id="adminusername"
                                     name="adminusername" placeholder="Username" required>
@@ -137,7 +147,7 @@
             for (var i = 0; i < input.length; i++) {
                 if (input[i].classList.contains("is-invalid")) flag = false;
             }
-
+            console.log(flag);
             if (flag) {
                 $.ajax({
                     url: '/register',
@@ -147,6 +157,8 @@
                         shortname: $('#shortname').val(),
                         schoolemail: $('#schoolemail').val(),
                         adminusername: $('#adminusername').val(),
+                        adminfirstname: $('#adminfirstname').val(),
+                        adminlastname: $('#adminlastname').val(),
                         password: $('#password').val(),
                     },
                     success: function (response) {

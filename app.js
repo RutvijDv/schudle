@@ -99,6 +99,8 @@ const schoolSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
     username: String,
+    firstname: String,
+    lastname: String,
     schoolname: String,
     schoolshort: String,
     role: {
@@ -166,19 +168,24 @@ app.get("/register", function (req, res) {
 
 app.post("/register", function (req, res) {
     var schoolname = _.capitalize(req.body.schoolname);
-    var shortname = req.body.shortname;
+    var shortname = _.lowerCase(req.body.shortname);
     var schoolemail = req.body.schoolemail;
     var adminusername = req.body.adminusername;
+    var adminfirstname = req.body.firstname;
+    var adminlastname = req.body.lastname;
 
     const school = new School({
         schoolname: schoolname,
         shortname: shortname,
         schoolemail: schoolemail,
         adminusername: adminusername,
+
     })
 
     User.register({
         username: adminusername,
+        firstname: adminfirstname,
+        lastname: adminlastname,
         schoolname: schoolname,
         role: "admin",
         schoolshort: shortname,
@@ -186,14 +193,14 @@ app.post("/register", function (req, res) {
         if (err) {
             console.log(err);
             res.send({
-                message: "school not saved"
+                message: "admin not saved"
             });
         } else {
             school.save(function (err) {
                 if (err) {
                     console.log(err);
                     res.send({
-                        message: "admin not saved"
+                        message: "school not saved"
                     });
                 }
                 res.send({
@@ -244,9 +251,9 @@ app.post("/register-validation", function (req, res) {
     }
     if (val == "shortname") {
         School.findOne({
-            shortname: req.body.data.trim()
+            shortname: _.lowerCase(req.body.data.trim()),
         }, function (err, f) {
-            if (err) console.log(err);
+            if (err) console.log("11111" + err);
             else {
                 if (f) {
                     res.send({
@@ -410,17 +417,18 @@ app.post("/recover-password/:token", function (req, res) {
 
 //Custom School login/logout route
 app.get("/:schoolname", function (req, res) {
-    const schoolname = req.params.schoolname;
+    var shortname = req.params.schoolname;
 
     School.findOne({
-        shortname: schoolname
+        shortname: shortname
     }, function (err, found) {
+
         if (!found) {
             res.render("error404");
         } else {
             res.render("login", {
-                school: schoolname,
-                message: ""
+                schoolname: found.schoolname,
+                shortname: shortname,
             });
         }
     })
@@ -765,65 +773,80 @@ app.post("/:schoolname/admin/createprof", function (req, res) {
 
 //Creating Student route
 app.get("/:schoolname/admin/createstudent", function (req, res) {
-    const schoolname = req.params.schoolname;
+    const shortname = req.params.schoolname;
 
-    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
         res.render("create_student", {
-            school: schoolname,
-            message: ""
+            shortname: shortname,
         });
     } else {
-        res.redirect("/" + schoolname);
+        res.redirect("/" + shortname);
     }
 })
 
 app.post("/:schoolname/admin/createstudent", function (req, res) {
-    const link = req.params.schoolname;
+    const shortname = req.params.schoolname;
 
-    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == link) {
-        const schoolname = req.user.schoolname;
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
         const username = req.body.username;
+        const button = req.body.button;
 
-        User.findOne({
-            username: username
-        }, function (err, found) {
-            if (found) {
-                res.render("create_student", {
-                    school: link,
-                    message: "student Already Exist"
-                })
-            } else {
-                User.register({
-                    username: username,
-                    schoolname: schoolname,
-                    role: "student",
-                    schoolshort: link,
-                }, req.body.password, function (err, user) {
-                    if (err) {
-                        console.log(err);
-                        res.redirect("/" + link);
-                    } else {
-                        User.findOne({
-                            username: username
-                        }, function (err, find) {
-                            School.findOne({
-                                shortname: link
-                            }, function (err, founded) {
-                                if (founded) {
-                                    founded.studentid.push(find._id)
-                                    founded.save(function () {
-                                        res.redirect("/" + link + "/admin/dashboard");
-                                    });
-                                }
-                            })
+        if (button == 'validate') {
+            User.findOne({
+                username: username
+            }, function (err, found) {
+                if (found) {
+                    res.send({
+                        message: 'User already exist',
+                    })
+                } else {
+                    res.send({
+                        message: 'User available',
+                    })
+                }
+            })
+        }
+
+
+        if (button == 'register') {
+            const firstname = req.body.firstname;
+            const lastname = req.body.lastname;
+            const schoolname = req.user.schoolname;
+            User.register({
+                username: username,
+                firstname: firstname,
+                lastname: lastname,
+                schoolname: schoolname,
+                role: "student",
+                schoolshort: shortname,
+            }, req.body.password, function (err, user) {
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        message: 'User not saved',
+                    })
+                } else {
+                    User.findOne({
+                        username: username
+                    }, function (err, find) {
+                        School.findOne({
+                            shortname: shortname
+                        }, function (err, founded) {
+                            if (founded) {
+                                founded.studentid.push(find._id)
+                                founded.save(function () {
+                                    res.send({
+                                        message: 'User saved',
+                                    })
+                                });
+                            }
                         })
-                    }
-                })
-            }
-        })
-
+                    })
+                }
+            })
+        }
     } else {
-        res.redirect("/" + link);
+        res.redirect("/" + shortname);
     }
 })
 

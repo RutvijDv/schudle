@@ -27,7 +27,7 @@
                         <div class="p-5">
                             <div class="text-center">
                                 <br>
-                                <h4 class="text-dark mb-4">Welcome to <%= school %></h4>
+                                <h4 class="text-dark mb-4">Welcome to <%= schoolname %></h4>
                             </div>
                             <form class="user" id="login_form" method="POST" onsubmit='sub(event)'>
                                 <div class="form-group">
@@ -49,7 +49,7 @@
                                 <button class="btn btn-primary btn-block text-white btn-user" type="submit"
                                     name="button" value="login">Login</button>
                             </form>
-                            <div class="text-center"><a class="small" href="<%= school %>/forgot-password">Forgot
+                            <div class="text-center"><a class="small" href="<%= shortname %>/forgot-password">Forgot
                                     Password?</a></div>
                             <br><br><br><br>
                         </div>
@@ -64,12 +64,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
     <script src="/javascript/dashboard.min.js"></script>
     <script>
-        var school = '<%-school%>';
+        var shortname = '<%-shortname%>';
 
         function sub(event) {
             event.preventDefault();
             $.ajax({
-                url: '/' + school,
+                url: '/' + shortname,
                 type: 'post',
                 data: {
                     username: $('#username').val(),
@@ -91,15 +91,15 @@
                     }
 
                     if (response.message == "admin") {
-                        window.location.replace("/" + school + "/admin/dashboard");
+                        window.location.replace("/" + shortname + "/admin/dashboard");
                     }
 
                     if (response.message == "professor") {
-                        window.location.replace("/" + school + "/professor/dashboard");
+                        window.location.replace("/" + shortname + "/professor/dashboard");
                     }
 
                     if (response.message == "student") {
-                        window.location.replace("/" + school + "/student/dashboard");
+                        window.location.replace("/" + shortname + "/student/dashboard");
                     }
 
                     if (!response) {
