@@ -33,14 +33,14 @@
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
                                         <input id="firstname" class="form-control form-control-user create-input"
-                                            type="text" placeholder="First Name" name="studentname"></div>
+                                            type="text" placeholder="First Name" name="studentname" required></div>
                                     <div class="col-sm-6">
                                         <input id="lastname" class="form-control form-control-user create-input"
-                                            type="text" placeholder="Last Name" name="last_name"></div>
+                                            type="text" placeholder="Last Name" name="last_name" required></div>
                                 </div>
                                 <div class="form-group">
                                     <input id="username" class="form-control form-control-user create-input" type="text"
-                                        placeholder="Username" name="username">
+                                        placeholder="Username" name="username" required>
                                     <div id="username-feedback" class="invalid-feedback" style="display: none;">
                                         *This user is already registered.
                                     </div>
@@ -48,10 +48,16 @@
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
                                         <input id="password" class="form-control form-control-user create-input"
-                                            type="password" placeholder="Password" name="password"></div>
+                                            type="password" placeholder="Password" name="password" required></div>
                                     <div class="col-sm-6">
-                                        <input class="form-control form-control-user create-input" type="password"
-                                            placeholder="Repeat Password" name="password_repeat"></div>
+                                        <input id="repeate-password" class="form-control form-control-user create-input"
+                                            type="password" placeholder="Repeat Password" name="password_repeat"
+                                            required>
+                                        <div id="repeate-password-feedback" class="invalid-feedback"
+                                            style="display: none;">
+                                            *Password should match.
+                                        </div>
+                                    </div>
                                 </div><button class="btn btn-primary btn-block text-white btn-user" type="submit"
                                     name="register">Register Account</button>
                             </form>
@@ -68,9 +74,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
     <script src="/javascript/dashboard.min.js"></script>
 
-
-
-
     <script>
         var shortname = '<%-shortname%>';
 
@@ -79,7 +82,19 @@
             var input = $('#username');
 
             var flag = true;
+
             if (input.hasClass("is-invalid")) flag = false;
+            if ($('#password').val() != $('#repeate-password').val()) {
+                console.log("1");
+                flag = false;
+                $('#repeate-password').addClass('is-invalid');
+                $('#repeate-password-feedback')[0].style.display = "block";
+            } else {
+                console.log("2");
+                flag = true;
+                $('#repeate-password').removeClass('is-invalid');
+                $('#repeate-password-feedback')[0].style.display = "none";
+            }
 
             if (flag) {
                 var username = $('#username').val();

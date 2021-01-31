@@ -618,7 +618,7 @@ app.post('/:schoolname/:course_id/add_course_cont', function (req, res) {
 
 //Admin Dashboard route
 app.get("/:schoolname/admin/dashboard", function (req, res) {
-    const schoolname = req.params.schoolname;
+    const shortname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
         School.findOne({
