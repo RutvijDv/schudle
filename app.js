@@ -171,8 +171,8 @@ app.post("/register", function (req, res) {
     var shortname = _.lowerCase(req.body.shortname);
     var schoolemail = req.body.schoolemail;
     var adminusername = req.body.adminusername;
-    var adminfirstname = req.body.firstname;
-    var adminlastname = req.body.lastname;
+    var adminfirstname = _.capitalize(req.body.adminfirstname);
+    var adminlastname = _.capitalize(req.body.adminlastname);
 
     const school = new School({
         schoolname: schoolname,
@@ -182,6 +182,7 @@ app.post("/register", function (req, res) {
 
     })
 
+    console.log(adminfirstname);
     User.register({
         username: adminusername,
         firstname: adminfirstname,
@@ -288,6 +289,90 @@ app.post("/register-validation", function (req, res) {
     }
 });
 
+//Custom School login/logout route
+app.get("/:schoolname", function (req, res) {
+    var shortname = req.params.schoolname;
+
+    School.findOne({
+        shortname: shortname
+    }, function (err, found) {
+
+        if (!found) {
+            res.render("error404");
+        } else {
+            res.render("login", {
+                schoolname: found.schoolname,
+                shortname: shortname,
+            });
+        }
+    })
+});
+
+app.post("/:schoolname", function (req, res) {
+    const username = req.body.username;
+    const schoolname = req.params.schoolname;
+    const button = req.body.button;
+
+    if (button == "login") {
+        User.findOne({
+            username: username
+        }, function (err, found) {
+            if (!found) {
+
+                res.send({
+                    message: "User not found"
+                })
+            } else {
+                if (found.schoolshort == schoolname) {
+                    const user = new User({
+                        username: username,
+                        password: req.body.password
+                    })
+                    req.login(user, function (err) {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                message: "Bad Credentials"
+                            })
+                        } else {
+                            passport.authenticate("local", function (err, user, info) {
+                                if (info) {
+                                    req.session.destroy();
+                                    res.send({
+                                        message: "Bad Credentials"
+                                    })
+                                } else {
+                                    if (found.role === "admin") {
+                                        res.send({
+                                            message: "admin"
+                                        })
+                                    } else if (found.role === "professor") {
+                                        res.send({
+                                            message: "professor"
+                                        })
+                                    } else if (found.role === "student") {
+                                        res.send({
+                                            message: "student"
+                                        })
+                                    }
+                                };
+                            })(req, res, function () {});
+                        }
+                    })
+                } else {
+                    res.send({
+                        message: "User not found"
+                    })
+                }
+            }
+        })
+    }
+    if (button == "logout") {
+        req.logout();
+        res.redirect("/" + schoolname);
+    }
+})
+
 //forgot password
 app.get("/:schoolname/forgot-password", function (req, res) {
     const schoolname = req.params.schoolname;
@@ -305,7 +390,7 @@ app.post("/:schoolname/forgot-password", function (req, res) {
 
     User.findOne({
         username: username,
-        schoolname: schoolname
+        schoolshort: schoolname
     }, function (err, found) {
         if (found) {
             time = (Date.now() + 900000).toString();
@@ -415,92 +500,9 @@ app.post("/recover-password/:token", function (req, res) {
     )
 })
 
-//Custom School login/logout route
-app.get("/:schoolname", function (req, res) {
-    var shortname = req.params.schoolname;
 
-    School.findOne({
-        shortname: shortname
-    }, function (err, found) {
-
-        if (!found) {
-            res.render("error404");
-        } else {
-            res.render("login", {
-                schoolname: found.schoolname,
-                shortname: shortname,
-            });
-        }
-    })
-});
-
-app.post("/:schoolname", function (req, res) {
-    const username = req.body.username;
-    const schoolname = req.params.schoolname;
-    const button = req.body.button;
-
-    if (button == "login") {
-        User.findOne({
-            username: username
-        }, function (err, found) {
-            if (!found) {
-
-                res.send({
-                    message: "User not found"
-                })
-            } else {
-                if (found.schoolshort == schoolname) {
-                    const user = new User({
-                        username: username,
-                        password: req.body.password
-                    })
-                    req.login(user, function (err) {
-                        if (err) {
-                            console.log(err);
-                            res.send({
-                                message: "Bad Credentials"
-                            })
-                        } else {
-                            passport.authenticate("local", function (err, user, info) {
-                                if (info) {
-                                    req.session.destroy();
-                                    res.send({
-                                        message: "Bad Credentials"
-                                    })
-                                } else {
-                                    if (found.role === "admin") {
-                                        res.send({
-                                            message: "admin"
-                                        })
-                                    } else if (found.role === "professor") {
-                                        res.send({
-                                            message: "professor"
-                                        })
-                                    } else if (found.role === "student") {
-                                        res.send({
-                                            message: "student"
-                                        })
-                                    }
-                                };
-                            })(req, res, function () {});
-                        }
-                    })
-                } else {
-                    res.send({
-                        message: "User not found"
-                    })
-                }
-            }
-        })
-    }
-    if (button == "logout") {
-        req.logout();
-        res.redirect("/" + schoolname);
-    }
-})
-
-// reset password route
-app.get('/:schoolname/reset_password', function (req, res) {
+//reset password route
+app.get('/:schoolname/reset-password', function (req, res) {
     const schoolname = req.params.schoolname;
 
     if (req.isAuthenticated()) {
@@ -513,7 +515,7 @@ app.get('/:schoolname/reset_password', function (req, res) {
     }
 })
 
-app.post('/:schoolname/reset_password', function (req, res) {
+app.post('/:schoolname/reset-password', function (req, res) {
     if (req.isAuthenticated()) {
         if (req.body.new_pass == req.body.conf_pass) {
             req.user.changePassword(req.body.curr_pass, req.body.new_pass, function (err) {
@@ -530,114 +532,43 @@ app.post('/:schoolname/reset_password', function (req, res) {
     }
 })
 
-// open course page
-app.get('/:schoolname/:course_id', function (req, res) {
-    Course.findOne({
-        _id: req.params.course_id
-    }, function (err, found) {
-        if (found) {
-            var professorid;
-            var studentid;
-            if (found.professorid) professorid = found.professorid;
-            if (found.studentid) studentid = found.studentid;
+//Profiles
+app.get("/:schoolname/profile", function (req, res) {
+    const shortname = req.params.schoolname;
 
-            var allids = professorid.concat(studentid);
-
-
-            User.find({
-                _id: {
-                    $in: allids
-                }
-            }, function (err, founded) {
-                var professors = [];
-                var students = [];
-                for (var i = 0; i < founded.length; i++) {
-                    if (founded[i].role == "student") students.push(founded[i].username);
-                    if (founded[i].role == "professor") professors.push(founded[i].username);
-                }
-                if (req.user.role == "professor") {
-                    res.render("course_page_prof", {
-                        school: req.params.schoolname,
-                        found: found,
-                        students: students,
-                        professors: professors
-                    });
-                } else if (req.user.role == "student") {
-                    res.render("course_page_stud", {
-                        school: req.params.schoolname,
-                        found: found,
-                        students: students,
-                        professors: professors
-                    });
-                }
-            })
-
-        } else {
-            console.log("not found");
-        }
-        if (err) {
-            console.log(err);
-        }
-    })
-})
-
-// add course content
-
-app.get('/:schoolname/:course_id/add_course_cont', function (req, res) {
-    res.render("add_course_cont", {
-        school: req.params.schoolname,
-        course_id: req.params.course_id
-    });
-})
-
-app.post('/:schoolname/:course_id/add_course_cont', function (req, res) {
-    if (req.isAuthenticated() && req.user.role == "professor") {
-        Course.findOne({
-            _id: req.params.course_id
-        }, function (err, found) {
-            if (err) {
-                console.log(err);
-            }
-            if (found) {
-                found.items.push({
-                    name: req.body.content_name,
-                    link: "https://" + req.body.content_link
-                });
-                found.save(function (err) {
-                    if (!err) {
-                        res.redirect("/" + req.params.schoolname + "/" + req.params.course_id);
-                    }
-                    console.log(err);
-                })
-            } else {
-                console.log("not found");
-            }
+    if (req.isAuthenticated() && req.user.schoolshort == shortname) {
+        res.render('profile', {
+            shortname: req.params.schoolname,
+            info: req.user,
         })
+    } else {
+        res.redirect("/" + shortname);
     }
+
 })
 
 //Admin Dashboard route
 app.get("/:schoolname/admin/dashboard", function (req, res) {
     const shortname = req.params.schoolname;
 
-    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
         School.findOne({
-            shortname: schoolname
+            shortname: shortname
         }, function (err, find) {
             Course.find({
                 schoolid: find._id
             }, function (err, found) {
                 res.render("admin_dash", {
-                    school: schoolname,
+                    school: shortname,
                     courses: found,
                     no_student: find.studentid.length,
                     no_professor: find.professorid.length,
-                    message: ""
+                    name: req.user.firstname + ' ' + req.user.lastname,
                 });
             })
         })
     } else {
-        res.redirect("/" + schoolname);
+        res.redirect("/" + shortname);
     }
 })
 
@@ -663,7 +594,6 @@ app.post("/:schoolname/admin/dashboard", function (req, res) {
     }
 })
 
-
 //Professor Dashboard route
 app.get("/:schoolname/professor/dashboard", function (req, res) {
     const schoolname = req.params.schoolname;
@@ -675,6 +605,7 @@ app.get("/:schoolname/professor/dashboard", function (req, res) {
             }
         }, function (err, find) {
             res.render("professor_dash", {
+                name: req.user.firstname + ' ' + req.user.lastname,
                 school: schoolname,
                 courses: find
             })
@@ -696,6 +627,7 @@ app.get("/:schoolname/student/dashboard", function (req, res) {
             }
         }, function (err, find) {
             res.render("student_dash", {
+                name: req.user.firstname + ' ' + req.user.lastname,
                 school: schoolname,
                 courses: find
             })
@@ -746,8 +678,8 @@ app.post("/:schoolname/admin/createprof", function (req, res) {
 
 
         if (button == 'register') {
-            const firstname = req.body.firstname;
-            const lastname = req.body.lastname;
+            const firstname = _.capitalize(req.body.firstname);
+            const lastname = _.capitalize(req.body.lastname);
             const schoolname = req.user.schoolname;
             User.register({
                 username: username,
@@ -827,8 +759,8 @@ app.post("/:schoolname/admin/createstudent", function (req, res) {
 
 
         if (button == 'register') {
-            const firstname = req.body.firstname;
-            const lastname = req.body.lastname;
+            const firstname = _.capitalize(req.body.firstname);
+            const lastname = _.capitalize(req.body.lastname);
             const schoolname = req.user.schoolname;
             User.register({
                 username: username,
@@ -1360,6 +1292,91 @@ app.post("/:schoolname/admin/courses/:coursename/removestudent", function (req, 
     } else {
         res.redirect("/" + schoolname);
     };
+})
+
+// open course page
+app.get('/:schoolname/courses/:course_id', function (req, res) {
+    Course.findOne({
+        _id: req.params.course_id
+    }, function (err, found) {
+        if (found) {
+            var professorid;
+            var studentid;
+            if (found.professorid) professorid = found.professorid;
+            if (found.studentid) studentid = found.studentid;
+
+            var allids = professorid.concat(studentid);
+
+
+            User.find({
+                _id: {
+                    $in: allids
+                }
+            }, function (err, founded) {
+                var professors = [];
+                var students = [];
+                for (var i = 0; i < founded.length; i++) {
+                    if (founded[i].role == "student") students.push(founded[i].username);
+                    if (founded[i].role == "professor") professors.push(founded[i].username);
+                }
+                if (req.user.role == "professor") {
+                    res.render("course_page_prof", {
+                        school: req.params.schoolname,
+                        found: found,
+                        students: students,
+                        professors: professors
+                    });
+                } else if (req.user.role == "student") {
+                    res.render("course_page_stud", {
+                        school: req.params.schoolname,
+                        found: found,
+                        students: students,
+                        professors: professors
+                    });
+                }
+            })
+
+        } else {
+            console.log("not found");
+        }
+        if (err) {
+            console.log(err);
+        }
+    })
+})
+
+//Add course content
+app.get('/:schoolname/courses/:course_id/add_course_cont', function (req, res) {
+    res.render("add_course_cont", {
+        school: req.params.schoolname,
+        course_id: req.params.course_id
+    });
+})
+
+app.post('/:schoolname/courses/:course_id/add_course_cont', function (req, res) {
+    if (req.isAuthenticated() && req.user.role == "professor") {
+        Course.findOne({
+            _id: req.params.course_id
+        }, function (err, found) {
+            if (err) {
+                console.log(err);
+            }
+            if (found) {
+                found.items.push({
+                    name: req.body.content_name,
+                    link: "https://" + req.body.content_link
+                });
+                found.save(function (err) {
+                    if (!err) {
+                        res.redirect("/" + req.params.schoolname + "/" + req.params.course_id);
+                    }
+                    console.log(err);
+                })
+            } else {
+                console.log("not found");
+            }
+        })
+    }
 })
 
 // Server Hosting
