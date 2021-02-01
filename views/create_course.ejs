@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Create - Course</title>
     <link rel="stylesheet" href="/css/dashboard.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="/css/fontawesome5-overrides.min.css">
@@ -19,7 +20,8 @@
             <div class="card-body p-0">
                 <div class="row">
                     <div class="col-lg-5 d-none d-lg-flex">
-                        <div class="flex-grow-1 bg-register-image" style="background-image: url(&quot;/images/book.jpg&quot;);"></div>
+                        <div class="flex-grow-1 bg-register-image"
+                            style="background-image: url(&quot;/images/book.jpg&quot;);"></div>
                     </div>
                     <div class="col-lg-7">
                         <div class="p-5">
@@ -27,39 +29,111 @@
                                 <br>
                                 <h4 class="text-dark mb-4">Create Course</h4>
                             </div>
-                            <form class="user" id="create_course" method="POST">
+                            <form class="user" id="create_course" method="POST" onsubmit='sub(event)'>
                                 <div class="form-group row">
-                                    <div class="col-sm-6 mb-3 mb-sm-0"><input class="form-control form-control-user" type="text"  placeholder="Course Name" name="coursename"></div>
-                                    <div class="col-sm-6"><input class="form-control form-control-user" type="text" placeholder="Last Name" name="last_name"></div>
+                                    <div class="col-sm-6 mb-3 mb-sm-0">
+                                        <input id="coursename" class="form-control form-control-user input" type="text"
+                                            placeholder="Course Name" name="coursename">
+                                    </div>
+                                    <div id="coursename-feedback" class="invalid-feedback" style="display: none;">
+                                        *This course name is already created.
+                                    </div>
                                 </div>
-                                <div class="form-group"><input class="form-control form-control-user" type="text"  placeholder="Username" name="username"></div>
-                                <div class="form-group row">
-                                    <div class="col-sm-6 mb-3 mb-sm-0"><input class="form-control form-control-user" type="password"  placeholder="Password" name="password"></div>
-                                    <div class="col-sm-6"><input class="form-control form-control-user" type="password" placeholder="Repeat Password" name="password_repeat"></div>
-                                </div><button class="btn btn-primary btn-block text-white btn-user" type="submit" name="create">Create Course</button>
+                                <div class="form-group">
+                                    <input id="course_username" class="form-control form-control-user input" type="text"
+                                        placeholder="Course Username" name="course_username">
+                                </div>
+                                <div id="course_username-feedback" class="invalid-feedback" style="display: none;">
+                                    *This course_username is already created.
+                                </div>
+                                <button class="btn btn-primary btn-block text-white btn-user" type="submit"
+                                    name="create">Create Course</button>
                             </form>
-                            <br><br><br></div>
+                            <br><br><br>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
-        <script src="/javascript/dashboard.min.js"></script>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
+    <script src="/javascript/dashboard.min.js"></script>
+    <script>
+        var shortname = '<%-shortname%>';
+
+        function sub(event) {
+            event.preventDefault();
+            var input = $('.input');
+
+            var flag = true;
+
+            for (var i = 0; i < input.length; i++) {
+                if (input[i].classList.contains("is-invalid")) flag = false;
+            }
+
+            if (flag) {
+                $.ajax({
+                    url: '/' + shortname + '/admin/createcourse',
+                    type: 'post',
+                    data: {
+                        'coursename': $('#coursename').val(),
+                        'course_username': $('#course_username').val(),
+                    },
+                    success: function (response) {
+                        if (response.message == "all saved") {
+                            alert($('#course_username').val() + " Created")
+                            window.location.reload();
+                        } else {
+                            window.location.reload();
+                        }
+                    }
+                });
+            }
+        }
+
+        $('document').ready(function () {
+            var typingTimer;
+            var doneTypingInterval = 100;
+            var input = $('.input');
+
+            input.on('keyup', function (event) {
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(call(event.target.name), doneTypingInterval);
+            });
+
+            input.on('keydown', function () {
+                clearTimeout(typingTimer);
+            });
+
+            function call(field) {
+                var data = $('#' + field).val();
+                $.ajax({
+                    url: '/' + shortname + '/admin/createcourse-validation',
+                    type: 'post',
+                    data: {
+                        'val': field,
+                        'data': data,
+                    },
+                    success: function (response) {
+                        if (response.message == "taken") {
+                            $('#' + field).addClass('is-invalid');
+                            $('#' + field + "-feedback")[0].style.display = "block";
+                        } else {
+                            $('#' + field).removeClass('is-invalid');
+                            $('#' + field + "-feedback")[0].style.display = "none";
+                        }
+                    }
+                });
+            }
 
 
-    <!-- <h1>Create Course</h1>
-    <form id="create_course" method="POST">
-        <input type="text" name="coursename" placeholder="course name">
-        <button type="submit" name="create">Create</button>
-    </form>
 
-    <p>
-        <%=message%>
-    </p> -->
+        });
+    </script>
+    <script type="text/javascript" src="/javascript/all.js"></script>
 </body>
 
 </html>

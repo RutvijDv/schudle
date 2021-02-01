@@ -82,6 +82,7 @@ const courseItemSchema = new mongoose.Schema({
 const courseSchema = new mongoose.Schema({
     schoolid: String,
     coursename: String,
+    course_username: String,
     professorid: [],
     studentid: [],
     items: [courseItemSchema],
@@ -161,13 +162,11 @@ app.post("/", function (req, res) {
 
 //Register route
 app.get("/register", function (req, res) {
-    res.render("register", {
-        message: ""
-    });
+    res.render("register");
 });
 
 app.post("/register", function (req, res) {
-    var schoolname = _.capitalize(req.body.schoolname);
+    var schoolname = _.startCase(req.body.schoolname);
     var shortname = _.lowerCase(req.body.shortname);
     var schoolemail = req.body.schoolemail;
     var adminusername = req.body.adminusername;
@@ -182,7 +181,6 @@ app.post("/register", function (req, res) {
 
     })
 
-    console.log(adminfirstname);
     User.register({
         username: adminusername,
         firstname: adminfirstname,
@@ -203,10 +201,11 @@ app.post("/register", function (req, res) {
                     res.send({
                         message: "school not saved"
                     });
+                } else {
+                    res.send({
+                        message: "all saved"
+                    });
                 }
-                res.send({
-                    message: "all saved"
-                });
             });
         }
     })
@@ -254,7 +253,7 @@ app.post("/register-validation", function (req, res) {
         School.findOne({
             shortname: _.lowerCase(req.body.data.trim()),
         }, function (err, f) {
-            if (err) console.log("11111" + err);
+            if (err) console.log(err);
             else {
                 if (f) {
                     res.send({
@@ -572,28 +571,6 @@ app.get("/:schoolname/admin/dashboard", function (req, res) {
     }
 })
 
-app.post("/:schoolname/admin/dashboard", function (req, res) {
-    const schoolname = req.params.schoolname;
-
-    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
-        const button = req.body.button;
-
-        if (button == "createcourse") {
-            res.redirect("/" + schoolname + "/admin/createcourse");
-        }
-
-        if (button == "createprof") {
-            res.redirect("/" + schoolname + "/admin/createprof");
-        }
-
-        if (button == "createstudent") {
-            res.redirect("/" + schoolname + "/admin/createstudent");
-        }
-    } else {
-        res.redirect("/" + schoolname);
-    }
-})
-
 //Professor Dashboard route
 app.get("/:schoolname/professor/dashboard", function (req, res) {
     const schoolname = req.params.schoolname;
@@ -805,61 +782,103 @@ app.post("/:schoolname/admin/createstudent", function (req, res) {
 
 //Creating course route
 app.get("/:schoolname/admin/createcourse", function (req, res) {
-    const schoolname = req.params.schoolname;
+    const shortname = req.params.schoolname;
 
-    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
         res.render("create_course", {
-            school: schoolname,
-            message: ""
+            shortname: shortname,
         });
     } else {
-        res.redirect("/" + schoolname);
+        res.redirect("/" + shortname);
+    }
+})
+
+app.post("/:schoolname/admin/createcourse-validation", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        const val = req.body.val;
+
+        School.findOne({
+            shortname: shortname
+        }, function (err, find) {
+
+            if (val == 'coursename') {
+                Course.findOne({
+                    schoolid: find._id,
+                    coursename: _.capitalize(req.body.data),
+                }, function (err, found) {
+                    if (found) {
+                        res.send({
+                            message: 'taken',
+                        })
+                    } else {
+                        res.send({
+                            message: 'not taken',
+                        })
+                    }
+
+                })
+            }
+
+            if (val == 'course_username') {
+                Course.findOne({
+                    schoolid: find._id,
+                    course_username: _.upperCase(req.body.data),
+                }, function (err, found) {
+                    if (found) {
+                        res.send({
+                            message: 'taken',
+                        })
+                    } else {
+                        res.send({
+                            message: 'not taken',
+                        })
+                    }
+                })
+            }
+        })
+    } else {
+        res.send({
+            message: 'Uauthorised',
+        })
     }
 })
 
 app.post("/:schoolname/admin/createcourse", function (req, res) {
-    const schoolname = req.params.schoolname;
+    const shortname = req.params.schoolname;
 
-    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolname) {
-        const coursename = req.body.coursename;
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        const coursename = _.capitalize(req.body.coursename);
+        const course_username = _.upperCase(req.body.course_username);
 
         School.findOne({
-            shortname: schoolname
+            shortname: shortname
         }, function (err, find) {
-
             const newCourse = new Course({
                 coursename: coursename,
+                course_username: course_username,
                 schoolid: find._id,
             });
 
-            Course.findOne({
-                schoolid: find._id,
-                coursename: coursename
-            }, function (err, found) {
-
-                if (found) {
-                    res.render("create_course", {
-                        school: schoolname,
-                        message: "Course Already Exist"
-                    });
-                } else {
-                    newCourse.save(function () {
-                        Course.findOne({
-                            schoolid: find._id,
-                            coursename: coursename
-                        }, function (err, founded) {
-                            find.courses.push(founded._id)
-                            find.save(function () {
-                                res.redirect('/' + schoolname + "/admin/dashboard");
-                            })
+            newCourse.save(function () {
+                Course.findOne({
+                    schoolid: find._id,
+                    coursename: coursename,
+                }, function (err, founded) {
+                    find.courses.push(founded._id)
+                    find.save(function () {
+                        res.send({
+                            message: "all saved",
                         });
                     })
-                }
+                });
             })
         })
-
     } else {
-        res.redirect("/" + schoolname);
+        res.send({
+            message: 'Uauthorised',
+        })
     }
 })
 
@@ -903,7 +922,7 @@ app.get("/:schoolname/admin/courses/:coursename", function (req, res) {
                         res.render("course", {
                             school: schoolname,
                             coursename: coursename,
-                            message: "",
+                            name: req.user.firstname + " " + req.user.lastname,
                             professors: professors,
                             students: students,
                         });
