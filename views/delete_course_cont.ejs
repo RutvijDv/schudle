@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete course content</title>
+</head>
+<body>
+    <form action="/<%=school%>/<%=found._id%>/delete_course_cont" method="POST">
+    <% found.items.forEach(function(item){ %>
+        <input type="radio" name="delete" value="<%= item._id %>"><label><%= item.name %></label>
+    <% }) %>
+    <button type="submit"> delete </button>
+    </form>
+</body>
+</html>

@@ -6,12 +6,13 @@
     <title>Add Content</title>
 </head>
 <body>
-    <form action="/<%=school%>/<%=course_id%>/add_course_cont" method="POST">
+    <form action="/<%=school%>/<%=course_id%>/add_course_cont" enctype="multipart/form-data" method="POST">
         <label>Content name: </label>
         <input type="text" name="content_name">
         <label>Content link:</label>
-        <input type="text" name="content_link">
-        <button type="submit">Add</button>
+        <input type="file" name="file">
+        <button type="submit" onclick="filepath()">Add</button>
     </form>
+    
 </body>
 </html>
