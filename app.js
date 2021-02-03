@@ -9,10 +9,31 @@ const passport = require('passport');
 const passportLocalMongoose = require('passport-local-mongoose');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const multer = require('multer');
+const path = require('path');
+const { google } = require('googleapis');
+const credentials = require('./credentials.json');
+const fs = require('fs');
+const { file } = require('googleapis/build/src/apis/file');
+var uniqid = require('uniqid');
+const mime = require('mime-types');
 
 const algorithm = 'aes-256-ctr';
 const secretKey = process.env.SECRETKEY; // length must be 32.
 const iv = crypto.randomBytes(16);
+
+
+// drive configuration 
+const scopes = [
+    'https://www.googleapis.com/auth/drive'
+  ];
+
+const auth = new google.auth.JWT(
+    credentials.client_email, null,
+    credentials.private_key, scopes
+);
+
+const drive = google.drive({ version: "v3", auth });
 
 const encrypt = (text) => {
     const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
@@ -76,8 +97,10 @@ const reviewSchema = new mongoose.Schema({
 
 const courseItemSchema = new mongoose.Schema({
     name: String,
-    link: String,
+    google_id: String,
+    extension: String
 })
+
 
 const courseSchema = new mongoose.Schema({
     schoolid: String,
@@ -137,6 +160,20 @@ var transporter = nodemailer.createTransport({
         pass: process.env.PASSWORD, // generated ethereal password
     },
 });
+
+// setting up multer
+var storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+      cb(null, "./public/uploads"); //here we specify the destination. in this case i specified the current directory
+    },
+    filename: function(req, file, cb) {
+      console.log(file); //log the file object info in console
+      cb(null, file.originalname);//here we specify the file saving name. in this case. 
+  //i specified the original file name .you can modify this name to anything you want
+    }
+  });
+  
+var uploadDisk = multer({ storage: storage });
 
 //Routes
 
@@ -1368,7 +1405,7 @@ app.get('/:schoolname/:course_id', function (req, res) {
 
 app.get('/:schoolname/:course_id/add_course_cont', function (req, res) {
     drive.files.list({}, (err, res) => {
-        if (err) throw err;
+        try {if (err) throw err;
         const files = res.data.files;
         if (files.length) {
             files.map((file) => {
@@ -1376,6 +1413,9 @@ app.get('/:schoolname/:course_id/add_course_cont', function (req, res) {
             });
         } else {
             console.log('No files found');
+        }}
+        catch (err) {
+            next(err);
         }
     })
     res.render("add_course_cont", {
@@ -1469,12 +1509,16 @@ app.post('/:schoolname/download/:filename/:fileid', function (req, res) {
                 .on('end', () => {
                     console.log('\nDone downloading file.');
                     const file = "./public/downloads/" + req.params.filename; // file path from where node.js will send file to the requested user
-                    res.download(file); // Set disposition and send it.
-                    //   fs.unlink('./public/downloads/'+req.params.filename, (err) => {
-                    //     if (err) {
-                    //       console.error(err)
-                    //       return
-                    // }})
+                    res.download(file, function(err){
+                        //CHECK FOR ERROR
+                        // console.log("inside download")
+                        fs.unlink('./public/downloads/'+req.params.filename, (err) => {
+                                if (err) {
+                                  console.error(err)
+                                  return
+                            }})
+                      }); // Set disposition and send it.
+                    //   
                 })
                 .on('error', (err) => {
                     console.error('Error downloading file.');
