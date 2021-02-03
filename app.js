@@ -163,7 +163,7 @@ var transporter = nodemailer.createTransport({
 // setting up multer
 var storage = multer.diskStorage({
     destination: function(req, file, cb) {
-      cb(null, "./public/uploads"); //here we specify the destination. in this case i specified the current directory
+      cb(null, "./public/"); //here we specify the destination. in this case i specified the current directory
     },
     filename: function(req, file, cb) {
       console.log(file); //log the file object info in console
@@ -1491,7 +1491,7 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
 
 app.post('/:schoolname/download/:filename/:fileid', function (req, res) {
     var fileId = req.params.fileid;
-    var dest = fs.createWriteStream('./public/downloads/' + req.params.filename);
+    var dest = fs.createWriteStream('./public/' + req.params.filename);
     drive.files
         .get({
             fileId,
@@ -1503,11 +1503,11 @@ app.post('/:schoolname/download/:filename/:fileid', function (req, res) {
             driveResponse.data
                 .on('end', () => {
                     console.log('\nDone downloading file.');
-                    const file = "./public/downloads/" + req.params.filename; // file path from where node.js will send file to the requested user
+                    const file = "./public/" + req.params.filename; // file path from where node.js will send file to the requested user
                     res.download(file, function(err){
                         //CHECK FOR ERROR
                         // console.log("inside download")
-                        fs.unlink('./public/downloads/'+req.params.filename, (err) => {
+                        fs.unlink('./public/'+req.params.filename, (err) => {
                                 if (err) {
                                   console.error(err)
                                   return
