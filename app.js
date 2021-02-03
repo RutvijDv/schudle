@@ -15,7 +15,6 @@ const { google } = require('googleapis');
 const credentials = require('./credentials.json');
 const fs = require('fs');
 const { file } = require('googleapis/build/src/apis/file');
-var uniqid = require('uniqid');
 const mime = require('mime-types');
 
 const algorithm = 'aes-256-ctr';
@@ -1438,7 +1437,6 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
                 console.log(err);
             }
             if (found) {
-                let fileid = uniqid();
                 var filedet;
                 var fileMetadata = {
                     name: req.body.content_name, // file name that will be saved in google drive
@@ -1450,10 +1448,7 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
 
                 drive.files.create({
                         resource: fileMetadata,
-                        media: media,
-                        appProperties: {
-                            additionalID: fileid,
-                        }
+                        media: media
                     },
                     function (err, file) {
                         if (err) {
