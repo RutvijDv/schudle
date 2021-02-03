@@ -469,7 +469,7 @@ app.get("/recover-password/:token", function (req, res) {
     if (time > Date.now()) {
         User.findOne({
             username: username,
-            schoolname: schoolname
+            schoolshort: schoolname
         }, function (err, user) {
             if (user) {
                 res.render("recover-password", {
@@ -501,7 +501,7 @@ app.post("/recover-password/:token", function (req, res) {
     if (time > Date.now()) {
         User.findOne({
             username: username,
-            schoolname: schoolname
+            schoolshort: schoolname
         }, function (err, user) {
             if (user) {
                 user.setPassword(req.body.password, function (err, updatedUser) {
