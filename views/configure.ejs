@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure Ejs</title>
+</head>
+<body>
+    <p>Authorize this app by visiting this url:  </p> <a href="<%=url%>"><%=url%></a> 
+    <form action="/<%=school%>/admin/configure" method="POST">
+        <label>Enter the key: </label>
+        <input type="text" name="key">
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

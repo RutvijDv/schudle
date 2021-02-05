@@ -12,6 +12,7 @@ const crypto = require('crypto');
 const multer = require('multer');
 const path = require('path');
 const { google } = require('googleapis');
+const credentials1 = require('./credentials1.json');
 const credentials = require('./credentials.json');
 const fs = require('fs');
 const { file } = require('googleapis/build/src/apis/file');
@@ -24,15 +25,17 @@ const iv = crypto.randomBytes(16);
 
 // drive configuration 
 const scopes = [
-    'https://www.googleapis.com/auth/drive'
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/calendar',
   ];
 
-const auth = new google.auth.JWT(
-    credentials.client_email, null,
-    credentials.private_key, scopes
+const auth1 = new google.auth.JWT(
+    credentials1.client_email, null,
+    credentials1.private_key, scopes
 );
 
-const drive = google.drive({ version: "v3", auth });
+const drive = google.drive({ version: "v3", auth1});
+
 
 const encrypt = (text) => {
     const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
@@ -118,6 +121,7 @@ const schoolSchema = new mongoose.Schema({
     studentid: [],
     professorid: [],
     courses: [],
+    googletoken : String,
 });
 
 const userSchema = new mongoose.Schema({
@@ -650,6 +654,55 @@ app.get("/:schoolname/student/dashboard", function (req, res) {
     }
 })
 
+
+// Configuration of drive and calender
+
+const {client_id, client_secret, redirect_uris} = credentials.installed;
+        const oAuth2Client = new google.auth.OAuth2(
+        client_id, client_secret, redirect_uris[0]);
+
+app.get("/:schoolname/admin/configure", function(req,res){
+    if(req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname){
+       
+            const authUrl = oAuth2Client.generateAuthUrl({
+              access_type: 'offline',
+              scope: scopes,
+            });
+
+            res.render("configure",{school: req.params.schoolname,url: authUrl});
+    }
+})
+
+
+app.post("/:schoolname/admin/configure", function(req,res){
+    oAuth2Client.getToken(req.body.key, (err, token) => {
+        if (err) return console.error('Error retrieving access token', err);
+
+        oAuth2Client.setCredentials(token);
+        
+        School.findOne({shortname: req.params.schoolname}, function(err,found){
+            if(err){
+                console.log(err);
+            }
+            if(found){
+                // console.log(JSON.parse(decrypt(JSON.parse(JSON.stringify(encrypt(JSON.stringify(token)))))));
+                found.googletoken = JSON.stringify(encrypt(JSON.stringify(token)));
+                found.save(function(err){
+                    if(err){
+                        console.log(err);
+                        res.redirect("/"+req.params.schoolname+"/admin/configure");
+                    }
+                    res.redirect("/"+req.params.schoolname+"/admin/dashboard");
+                })
+            }
+            else{
+                res.render('error404');
+            }
+        })
+
+    });
+
+})
 
 //Creating Professor route
 app.get("/:schoolname/admin/createprof", function (req, res) {
