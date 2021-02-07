@@ -11,10 +11,14 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const multer = require('multer');
 const path = require('path');
-const { google } = require('googleapis');
+const {
+    google
+} = require('googleapis');
 const credentials = require('./credentials.json');
 const fs = require('fs');
-const { file } = require('googleapis/build/src/apis/file');
+const {
+    file
+} = require('googleapis/build/src/apis/file');
 const mime = require('mime-types');
 
 const algorithm = 'aes-256-ctr';
@@ -25,14 +29,17 @@ const iv = crypto.randomBytes(16);
 // drive configuration 
 const scopes = [
     'https://www.googleapis.com/auth/drive'
-  ];
+];
 
 const auth = new google.auth.JWT(
     credentials.client_email, null,
     credentials.private_key, scopes
 );
 
-const drive = google.drive({ version: "v3", auth });
+const drive = google.drive({
+    version: "v3",
+    auth
+});
 
 const encrypt = (text) => {
     const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
@@ -162,17 +169,19 @@ var transporter = nodemailer.createTransport({
 
 // setting up multer
 var storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-      cb(null, "./public/"); //here we specify the destination. in this case i specified the current directory
+    destination: function (req, file, cb) {
+        cb(null, "./public/"); //here we specify the destination. in this case i specified the current directory
     },
-    filename: function(req, file, cb) {
-      console.log(file); //log the file object info in console
-      cb(null, file.originalname);//here we specify the file saving name. in this case. 
-  //i specified the original file name .you can modify this name to anything you want
+    filename: function (req, file, cb) {
+        console.log(file); //log the file object info in console
+        cb(null, file.originalname); //here we specify the file saving name. in this case. 
+        //i specified the original file name .you can modify this name to anything you want
     }
-  });
-  
-var uploadDisk = multer({ storage: storage });
+});
+
+var uploadDisk = multer({
+    storage: storage
+});
 
 //Routes
 
@@ -477,14 +486,12 @@ app.get("/recover-password/:token", function (req, res) {
                     message: ""
                 });
             } else {
-                //user not found in school. Somthing goes Wrong
                 res.render('error404')
             }
         })
-    } else(
-        //link expired
+    } else {
         res.render('error404')
-    )
+    }
 })
 
 app.post("/recover-password/:token", function (req, res) {
@@ -514,24 +521,29 @@ app.post("/recover-password/:token", function (req, res) {
                                 console.log(err);
                             }
                         });
-                        console.log("user updated sucessfully");
                     }
                 })
-                console.log(user);
                 user.save(function (err) {
                     if (err) {
                         console.log(err);
                     }
                 });
-                res.redirect("/" + schoolname);
+                res.send({
+                    message: 'saved',
+                    schoolname: schoolname,
+                })
             } else {
                 //user not found in school. Somthing goes Wrong
-                res.render('error404')
+                res.send({
+                    message: 'user not found'
+                })
             }
         })
     } else(
         //link expired
-        res.render('error404')
+        res.send({
+            message: 'error',
+        })
     )
 })
 
@@ -552,18 +564,23 @@ app.get('/:schoolname/reset-password', function (req, res) {
 
 app.post('/:schoolname/reset-password', function (req, res) {
     if (req.isAuthenticated()) {
-        if (req.body.new_pass == req.body.conf_pass) {
-            req.user.changePassword(req.body.curr_pass, req.body.new_pass, function (err) {
-                if (err) {
-                    console.log(err);
-                    res.send('<script>alert("Your Current Password is incorrect.Please enter the correct password."); window.history.go(-1);</script>');
-                } else {
-                    res.send('<script>alert("password updated successfully"); window.history.go(-2);</script>');
-                }
-            })
-        } else {
-            res.send('<script>alert("Password confirmation doesn\'t match the password"); window.history.go(-1);</script>');
-        }
+        req.user.changePassword(req.body.curr_pass, req.body.new_pass, function (err) {
+            if (err) {
+                console.log(err);
+                res.send({
+                    message: 'current password incorrect',
+                });
+            } else {
+                res.send({
+                    message: 'saved',
+                    schoolname: req.user.schoolshort,
+                });
+            }
+        })
+    } else {
+        res.send({
+            message: 'error404',
+        });
     }
 })
 
@@ -1404,16 +1421,17 @@ app.get('/:schoolname/:course_id', function (req, res) {
 
 app.get('/:schoolname/:course_id/add_course_cont', function (req, res) {
     drive.files.list({}, (err, res) => {
-        try {if (err) throw err;
-        const files = res.data.files;
-        if (files.length) {
-            files.map((file) => {
-                console.log(file);
-            });
-        } else {
-            console.log('No files found');
-        }}
-        catch (err) {
+        try {
+            if (err) throw err;
+            const files = res.data.files;
+            if (files.length) {
+                files.map((file) => {
+                    console.log(file);
+                });
+            } else {
+                console.log('No files found');
+            }
+        } catch (err) {
             next(err);
         }
     })
@@ -1504,15 +1522,16 @@ app.post('/:schoolname/download/:filename/:fileid', function (req, res) {
                 .on('end', () => {
                     console.log('\nDone downloading file.');
                     const file = "./public/" + req.params.filename; // file path from where node.js will send file to the requested user
-                    res.download(file, function(err){
+                    res.download(file, function (err) {
                         //CHECK FOR ERROR
                         // console.log("inside download")
-                        fs.unlink('./public/'+req.params.filename, (err) => {
-                                if (err) {
-                                  console.error(err)
-                                  return
-                            }})
-                      }); // Set disposition and send it.
+                        fs.unlink('./public/' + req.params.filename, (err) => {
+                            if (err) {
+                                console.error(err)
+                                return
+                            }
+                        })
+                    }); // Set disposition and send it.
                     //   
                 })
                 .on('error', (err) => {
@@ -1578,6 +1597,10 @@ app.post('/:schoolname/:course_id/delete_course_cont', function (req, res) {
         })
     })
 
+})
+
+app.get('/error404', function (req, res) {
+    res.render('error404');
 })
 // Server Hosting
 app.listen(3000, function () {
