@@ -517,10 +517,8 @@ app.post("/recover-password/:token", function (req, res) {
                                 console.log(err);
                             }
                         });
-                        console.log("user updated sucessfully");
                     }
                 })
-                console.log(user);
                 user.save(function (err) {
                     if (err) {
                         console.log(err);
