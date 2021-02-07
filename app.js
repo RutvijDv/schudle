@@ -584,8 +584,9 @@ app.get("/:schoolname/profile", function (req, res) {
 
     if (req.isAuthenticated() && req.user.schoolshort == shortname) {
         res.render('profile', {
-            shortname: req.params.schoolname,
+            schoolname: req.user.schoolname,
             info: req.user,
+            school: shortname
         })
     } else {
         res.redirect("/" + shortname);
