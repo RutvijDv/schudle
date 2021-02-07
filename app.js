@@ -425,7 +425,7 @@ app.post("/:schoolname/forgot-password", function (req, res) {
 
     User.findOne({
         username: username,
-        schoolshort: schoolname
+        schoolname: schoolname
     }, function (err, found) {
         if (found) {
             time = (Date.now() + 900000).toString();
@@ -445,10 +445,10 @@ app.post("/:schoolname/forgot-password", function (req, res) {
                 if (err) {
                     console.log(err);
                 }
-                res.send("<script>alert('Reset-Password link sent to Your Email. The link will expiries within 15min. Please setup your New Passsword. '); window.history.go(-2);</script>");
+                res.send("<script>alert('Reset-Password link sent to Your Email. The link will expiries within 15min. Please setup your New Passsword. '); window.history.go(-1);</script>");
             })
         } else {
-            res.send("<script>alert('User is not enrolled in this School.'); window.history.go(-2);</script>");
+            res.send("<script>alert('User is not enrolled in this School.'); window.history.go(-1);</script>");
         }
 
     })
@@ -456,6 +456,7 @@ app.post("/:schoolname/forgot-password", function (req, res) {
 
 //Password Recovery route
 app.get("/recover-password/:token", function (req, res) {
+    
     const token = req.params.token;
     const haseString = token.toString().split("-");
     const hase = {
@@ -466,10 +467,11 @@ app.get("/recover-password/:token", function (req, res) {
     const schoolname = linkString[0];
     const username = linkString[2];
     const time = linkString[3];
+
     if (time > Date.now()) {
         User.findOne({
             username: username,
-            schoolshort: schoolname
+            schoolname: schoolname
         }, function (err, user) {
             if (user) {
                 res.render("recover-password", {
@@ -488,6 +490,7 @@ app.get("/recover-password/:token", function (req, res) {
 })
 
 app.post("/recover-password/:token", function (req, res) {
+
     const token = req.params.token;
     const haseString = token.toString().split("-");
     const hase = {
@@ -501,7 +504,7 @@ app.post("/recover-password/:token", function (req, res) {
     if (time > Date.now()) {
         User.findOne({
             username: username,
-            schoolshort: schoolname
+            schoolname: schoolname
         }, function (err, user) {
             if (user) {
                 user.setPassword(req.body.password, function (err, updatedUser) {
@@ -523,7 +526,11 @@ app.post("/recover-password/:token", function (req, res) {
                         console.log(err);
                     }
                 });
-                res.redirect("/" + schoolname);
+                School.findOne({schoolname: schoolname}, function (err,school) {
+                    var short= school.shortname;
+                    res.redirect("/" + short);
+                });
+                
             } else {
                 //user not found in school. Somthing goes Wrong
                 res.render('error404')
