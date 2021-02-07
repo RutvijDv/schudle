@@ -417,28 +417,18 @@ app.post("/:schoolname", function (req, res) {
     }
 })
 
-//forgot password
-app.get("/:schoolname/forgot-password", function (req, res) {
-    const schoolname = req.params.schoolname;
-
-    res.render('forgot-password', {
-        school: schoolname,
-        message: ""
-    });
-})
-
 app.post("/:schoolname/forgot-password", function (req, res) {
-    const schoolname = req.params.schoolname;
+    const shortname = req.params.schoolname;
     const username = req.body.username;
     const userEmail = req.body.email;
 
     User.findOne({
         username: username,
-        schoolname: schoolname
+        schoolshort: shortname,
     }, function (err, found) {
         if (found) {
             time = (Date.now() + 900000).toString();
-            linkString = schoolname + "-" + userEmail + "-" + username + "-" + time;
+            linkString = shortname + "-" + userEmail + "-" + username + "-" + time;
             hasedLink = encrypt(linkString);
             token = hasedLink.iv + "-" + hasedLink.content;
 
@@ -454,10 +444,14 @@ app.post("/:schoolname/forgot-password", function (req, res) {
                 if (err) {
                     console.log(err);
                 }
-                res.send("<script>alert('Reset-Password link sent to Your Email. The link will expiries within 15min. Please setup your New Passsword. '); window.history.go(-1);</script>");
+                res.send({
+                    message: "Link sent",
+                });
             })
         } else {
-            res.send("<script>alert('User is not enrolled in this School.'); window.history.go(-1);</script>");
+            res.send({
+                message: "User not enrolled",
+            });
         }
 
     })
@@ -473,19 +467,18 @@ app.get("/recover-password/:token", function (req, res) {
         content: haseString[1].toString()
     }
     const linkString = decrypt(hase).split("-");
-    const schoolname = linkString[0];
+    const shortname = linkString[0];
     const username = linkString[2];
     const time = linkString[3];
 
     if (time > Date.now()) {
         User.findOne({
             username: username,
-            schoolname: schoolname
+            schoolshort: shortname,
         }, function (err, user) {
             if (user) {
                 res.render("recover-password", {
                     token: token,
-                    message: ""
                 });
             } else {
                 res.render('error404')
@@ -505,13 +498,13 @@ app.post("/recover-password/:token", function (req, res) {
         content: haseString[1].toString()
     }
     const linkString = decrypt(hase).split("-");
-    const schoolname = linkString[0];
+    const shortname = linkString[0];
     const username = linkString[2];
     const time = linkString[3];
     if (time > Date.now()) {
         User.findOne({
             username: username,
-            schoolname: schoolname
+            schoolshort: shortname,
         }, function (err, user) {
             if (user) {
                 user.setPassword(req.body.password, function (err, updatedUser) {
@@ -533,19 +526,17 @@ app.post("/recover-password/:token", function (req, res) {
                 });
                 res.send({
                     message: 'saved',
-                    schoolname: schoolname,
+                    schoolname: shortname,
                 })
             } else {
-                //user not found in school. Somthing goes Wrong
                 res.send({
                     message: 'user not found'
                 })
             }
         })
     } else(
-        //link expired
         res.send({
-            message: 'error',
+            message: 'Link expired',
         })
     )
 })
