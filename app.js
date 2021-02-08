@@ -586,13 +586,19 @@ app.get("/:schoolname/profile", function (req, res) {
         res.render('profile', {
             schoolname: req.user.schoolname,
             info: req.user,
-            school: shortname
+            school: shortname,
+            message: ""
         })
     } else {
         res.redirect("/" + shortname);
     }
 
 })
+
+app.post("/:schoolname/profile", function (req,res) {
+
+    
+});
 
 //Admin Dashboard route
 app.get("/:schoolname/admin/dashboard", function (req, res) {
