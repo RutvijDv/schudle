@@ -16,6 +16,7 @@ const credentials = require('./credentials.json');
 const fs = require('fs');
 const { file } = require('googleapis/build/src/apis/file');
 const mime = require('mime-types');
+const { create } = require('lodash');
 
 const algorithm = 'aes-256-ctr';
 const secretKey = process.env.SECRETKEY; // length must be 32.
@@ -27,6 +28,9 @@ const scopes = [
     'https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/calendar',
   ];
+  const {client_id, client_secret, redirect_uris} = credentials.installed;
+  const oAuth2Client = new google.auth.OAuth2(
+  client_id, client_secret, redirect_uris[0]);
 
 const encrypt = (text) => {
     const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
@@ -91,7 +95,7 @@ const reviewSchema = new mongoose.Schema({
 const courseItemSchema = new mongoose.Schema({
     name: String,
     google_id: String,
-    extension: String
+    extension: String,
 })
 
 
@@ -102,6 +106,7 @@ const courseSchema = new mongoose.Schema({
     professorid: [],
     studentid: [],
     items: [courseItemSchema],
+    drivefolderid: String,
 });
 
 const schoolSchema = new mongoose.Schema({
@@ -648,9 +653,7 @@ app.get("/:schoolname/student/dashboard", function (req, res) {
 
 // Configuration of drive and calender
 
-const {client_id, client_secret, redirect_uris} = credentials.installed;
-        const oAuth2Client = new google.auth.OAuth2(
-        client_id, client_secret, redirect_uris[0]);
+
 
 app.get("/:schoolname/admin/configure", function(req,res){
     if(req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname){
@@ -692,7 +695,7 @@ app.post("/:schoolname/admin/configure", function(req,res){
     });
 
 })
-function authorize(school,callback) {
+function authorize(school,response,callback) {
 
     School.findOne({shortname: school},function(err,found){
         if(err){
@@ -700,11 +703,18 @@ function authorize(school,callback) {
         }
         if(found){
             oAuth2Client.setCredentials(JSON.parse(decrypt(JSON.parse(found.googletoken))));
+            if(!(oAuth2Client.credentials.access_token)){
+                response.redirect("/"+school+"/contact_admin");
+            }
             callback(oAuth2Client);
         }
     })
 
 }
+
+app.get("/:schoolname/contact_admin",function(req,res){
+    res.render("contact_admin");
+})
 
 //Creating Professor route
 app.get("/:schoolname/admin/createprof", function (req, res) {
@@ -946,25 +956,52 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
         School.findOne({
             shortname: shortname
         }, function (err, find) {
-            const newCourse = new Course({
-                coursename: coursename,
-                course_username: course_username,
-                schoolid: find._id,
-            });
+            authorize(req.params.schoolname,res,create_folder);
+            function create_folder(auth){
+                const drive = google.drive({ version: "v3", auth });
+                
+                var fileMetadata = {
+                    'name': course_username,
+                    'mimeType': 'application/vnd.google-apps.folder'
+                };
+                drive.files.create({
+                    resource: fileMetadata,
+                    fields: 'id'
+                }, function (err, file) {
+                    if (err) {
+                      // Handle error
+                      console.error(err);
+                    } else {
+                    console.log('Folder Id: ', file.data.id);
+                    let folder_id = file.data.id;
+                    // console.log(typeof(file.data.id));
+                    const newCourse = new Course({
+                        coursename: coursename,
+                        course_username: course_username,
+                        schoolid: find._id,
+                        drivefolderid: folder_id,
+                    });
 
-            newCourse.save(function () {
-                Course.findOne({
-                    schoolid: find._id,
-                    coursename: coursename,
-                }, function (err, founded) {
-                    find.courses.push(founded._id)
-                    find.save(function () {
-                        res.send({
-                            message: "all saved",
+                    console.log(newCourse);
+        
+                    newCourse.save(function () {
+                        Course.findOne({
+                            schoolid: find._id,
+                            coursename: coursename,
+                        }, function (err, founded) {
+                            find.courses.push(founded._id)
+                            find.save(function () {
+                                res.send({
+                                    message: "all saved",
+                                });
+                            })
                         });
                     })
+                    }
                 });
-            })
+            }
+            
+              
         })
     } else {
         res.send({
@@ -1459,28 +1496,28 @@ app.get('/:schoolname/:course_id', function (req, res) {
 
 app.get('/:schoolname/:course_id/add_course_cont', function (req, res) {
     
-    authorize(req.params.schoolname,list_files);
+    // authorize(req.params.schoolname,res,list_files);
 
-    function list_files(auth){
-        const drive = google.drive({ version: "v3", auth });
-        // console.log(auth);
+    // function list_files(auth){
+    //     const drive = google.drive({ version: "v3", auth });
+    //     // console.log(auth);
 
-        drive.files.list({}, (err, res) => {
-            try {if (err) throw err;
-            const files = res.data.files;
-            if (files.length) {
-                files.map((file) => {
-                    console.log(file);
-                });
-            } else {
-                console.log('No files found');
-            }}
-            catch (err) {
-                console.log(err);
-            }
-        })
+    //     drive.files.list({}, (err, res) => {
+    //         try {if (err) throw err;
+    //         const files = res.data.files;
+    //         if (files.length) {
+    //             files.map((file) => {
+    //                 console.log(file);
+    //             });
+    //         } else {
+    //             console.log('No files found');
+    //         }}
+    //         catch (err) {
+    //             console.log(err);
+    //         }
+    //     })
         
-    }
+    // }
 
     res.render("add_course_cont", {
         school: req.params.schoolname,
@@ -1505,19 +1542,20 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
                 var filedet;
                 var fileMetadata = {
                     name: req.body.content_name, // file name that will be saved in google drive
+                    parents: [found.drivefolderid]
                 };
                 var media = {
                     mimeType: req.file.mimetype,
                     body: fs.createReadStream(req.file.destination + '/' + req.file.filename), // Reading the file from our server
                 };
 
-                authorize(req.params.schoolname,create_file);
+                authorize(req.params.schoolname,res,create_file);
 
                 function create_file(auth){
                 const drive = google.drive({ version: "v3", auth });
                 drive.files.create({
                         resource: fileMetadata,
-                        media: media
+                        media: media,
                     },
                     function (err, file) {
                         if (err) {
@@ -1562,7 +1600,7 @@ app.post('/:schoolname/download/:filename/:fileid', function (req, res) {
     var fileId = req.params.fileid;
     var dest = fs.createWriteStream('./public/' + req.params.filename);
     
-    authorize(req.params.schoolname,download_file);
+    authorize(req.params.schoolname,res,download_file);
     function download_file(auth){
         const drive = google.drive({ version: "v3", auth });
         drive.files
@@ -1630,7 +1668,7 @@ app.post('/:schoolname/:course_id/delete_course_cont', function (req, res) {
             found.items.forEach(function (item, i) {
                 if (item._id == req.body.delete) {
                     
-                    authorize(req.params.schoolname,delete_content);
+                    authorize(req.params.schoolname,res,delete_content);
                     function delete_content(auth){
                         const drive = google.drive({ version: "v3", auth });
                         drive.files.delete({
