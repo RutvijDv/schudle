@@ -12,7 +12,6 @@ const crypto = require('crypto');
 const multer = require('multer');
 const path = require('path');
 const { google } = require('googleapis');
-const credentials1 = require('./credentials1.json');
 const credentials = require('./credentials.json');
 const fs = require('fs');
 const { file } = require('googleapis/build/src/apis/file');
@@ -28,14 +27,6 @@ const scopes = [
     'https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/calendar',
   ];
-
-const auth1 = new google.auth.JWT(
-    credentials1.client_email, null,
-    credentials1.private_key, scopes
-);
-
-const drive = google.drive({ version: "v3", auth1});
-
 
 const encrypt = (text) => {
     const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
@@ -678,8 +669,6 @@ app.post("/:schoolname/admin/configure", function(req,res){
     oAuth2Client.getToken(req.body.key, (err, token) => {
         if (err) return console.error('Error retrieving access token', err);
 
-        oAuth2Client.setCredentials(token);
-        
         School.findOne({shortname: req.params.schoolname}, function(err,found){
             if(err){
                 console.log(err);
@@ -703,6 +692,19 @@ app.post("/:schoolname/admin/configure", function(req,res){
     });
 
 })
+function authorize(school,callback) {
+
+    School.findOne({shortname: school},function(err,found){
+        if(err){
+            console.log(err);
+        }
+        if(found){
+            oAuth2Client.setCredentials(JSON.parse(decrypt(JSON.parse(found.googletoken))));
+            callback(oAuth2Client);
+        }
+    })
+
+}
 
 //Creating Professor route
 app.get("/:schoolname/admin/createprof", function (req, res) {
@@ -1456,20 +1458,30 @@ app.get('/:schoolname/:course_id', function (req, res) {
 // add course content
 
 app.get('/:schoolname/:course_id/add_course_cont', function (req, res) {
-    drive.files.list({}, (err, res) => {
-        try {if (err) throw err;
-        const files = res.data.files;
-        if (files.length) {
-            files.map((file) => {
-                console.log(file);
-            });
-        } else {
-            console.log('No files found');
-        }}
-        catch (err) {
-            next(err);
-        }
-    })
+    
+    authorize(req.params.schoolname,list_files);
+
+    function list_files(auth){
+        const drive = google.drive({ version: "v3", auth });
+        // console.log(auth);
+
+        drive.files.list({}, (err, res) => {
+            try {if (err) throw err;
+            const files = res.data.files;
+            if (files.length) {
+                files.map((file) => {
+                    console.log(file);
+                });
+            } else {
+                console.log('No files found');
+            }}
+            catch (err) {
+                console.log(err);
+            }
+        })
+        
+    }
+
     res.render("add_course_cont", {
         school: req.params.schoolname,
         course_id: req.params.course_id
@@ -1499,6 +1511,10 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
                     body: fs.createReadStream(req.file.destination + '/' + req.file.filename), // Reading the file from our server
                 };
 
+                authorize(req.params.schoolname,create_file);
+
+                function create_file(auth){
+                const drive = google.drive({ version: "v3", auth });
                 drive.files.create({
                         resource: fileMetadata,
                         media: media
@@ -1531,7 +1547,7 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
                             })
                         }
                     }
-                );
+                );}
 
             } else {
                 console.log("not found");
@@ -1545,34 +1561,39 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
 app.post('/:schoolname/download/:filename/:fileid', function (req, res) {
     var fileId = req.params.fileid;
     var dest = fs.createWriteStream('./public/' + req.params.filename);
-    drive.files
-        .get({
-            fileId,
-            alt: 'media'
-        }, {
-            responseType: 'stream'
-        })
-        .then((driveResponse) => {
-            driveResponse.data
-                .on('end', () => {
-                    console.log('\nDone downloading file.');
-                    const file = "./public/" + req.params.filename; // file path from where node.js will send file to the requested user
-                    res.download(file, function(err){
-                        //CHECK FOR ERROR
-                        // console.log("inside download")
-                        fs.unlink('./public/'+req.params.filename, (err) => {
-                                if (err) {
-                                  console.error(err)
-                                  return
-                            }})
-                      }); // Set disposition and send it.
-                    //   
-                })
-                .on('error', (err) => {
-                    console.error('Error downloading file.');
-                })
-                .pipe(dest);
-        })
+    
+    authorize(req.params.schoolname,download_file);
+    function download_file(auth){
+        const drive = google.drive({ version: "v3", auth });
+        drive.files
+            .get({
+                fileId,
+                alt: 'media'
+            }, {
+                responseType: 'stream'
+            })
+            .then((driveResponse) => {
+                driveResponse.data
+                    .on('end', () => {
+                        console.log('\nDone downloading file.');
+                        const file = "./public/" + req.params.filename; // file path from where node.js will send file to the requested user
+                        res.download(file, function(err){
+                            //CHECK FOR ERROR
+                            // console.log("inside download")
+                            fs.unlink('./public/'+req.params.filename, (err) => {
+                                    if (err) {
+                                      console.error(err)
+                                      return
+                                }})
+                          }); // Set disposition and send it.
+                        //   
+                    })
+                    .on('error', (err) => {
+                        console.error('Error downloading file.');
+                    })
+                    .pipe(dest);
+            })
+    }
 });
 
 // delete course content
@@ -1608,17 +1629,23 @@ app.post('/:schoolname/:course_id/delete_course_cont', function (req, res) {
             // console.log(Array.isArray(req.body.delete));
             found.items.forEach(function (item, i) {
                 if (item._id == req.body.delete) {
-                    drive.files.delete({
-                            fileId: item.google_id,
-                        })
-                        .then(
-                            async function (response) {
-                                    console.log("success");
-                                },
-                                function (err) {
-                                    console.log(err);
-                                }
-                        );
+                    
+                    authorize(req.params.schoolname,delete_content);
+                    function delete_content(auth){
+                        const drive = google.drive({ version: "v3", auth });
+                        drive.files.delete({
+                                fileId: item.google_id,
+                            })
+                            .then(
+                                async function (response) {
+                                        console.log("success");
+                                    },
+                                    function (err) {
+                                        console.log(err);
+                                    }
+                            );
+                    }
+                            
                     found.items.splice(i, 1);
                 }
             })
