@@ -130,6 +130,7 @@ const userSchema = new mongoose.Schema({
     lastname: String,
     schoolname: String,
     schoolshort: String,
+    email:String,
     role: {
         type: String,
         enum: ['professor', 'admin', 'student'],
@@ -228,6 +229,7 @@ app.post("/register", function (req, res) {
         firstname: adminfirstname,
         lastname: adminlastname,
         schoolname: schoolname,
+        email: schoolemail,
         role: "admin",
         schoolshort: shortname,
     }, req.body.password, function (err) {
@@ -750,37 +752,57 @@ app.post("/:schoolname/admin/createprof", function (req, res) {
     const shortname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
-        const username = req.body.username;
-        const button = req.body.button;
 
-        if (button == 'validate') {
-            User.findOne({
-                username: username
-            }, function (err, found) {
-                if (found) {
-                    res.send({
-                        message: 'User already exist',
-                    })
-                } else {
-                    res.send({
-                        message: 'User available',
-                    })
-                }
-            })
+        if (req.body.button == 'validate') {
+                
+            if(req.body.val == 'username'){
+                User.findOne({
+                    username: req.body.data,
+                }, function (err, found) {
+                    if (found) {
+                        res.send({
+                            message: 'User already exist',
+                        })
+                    } else {
+                        res.send({
+                            message: 'User available',
+                        })
+                    }
+                })
+            }
+
+            if(req.body.val == 'email'){
+                User.findOne({
+                    email: req.body.data,
+                }, function (err, found) {
+                    if (found) {
+                        res.send({
+                            message: 'User already exist',
+                        })
+                    } else {
+                        res.send({
+                            message: 'User available',
+                        })
+                    }
+                })
+            }
+
         }
 
 
-        if (button == 'register') {
+
+        if (req.body.button == 'register') {
             const firstname = _.capitalize(req.body.firstname);
             const lastname = _.capitalize(req.body.lastname);
             const schoolname = req.user.schoolname;
             User.register({
-                username: username,
+                username: req.body.username,
                 firstname: firstname,
                 lastname: lastname,
                 schoolname: schoolname,
                 role: "professor",
                 schoolshort: shortname,
+                email: req.body.email,
             }, req.body.password, function (err, user) {
                 if (err) {
                     console.log(err);
@@ -789,7 +811,7 @@ app.post("/:schoolname/admin/createprof", function (req, res) {
                     })
                 } else {
                     User.findOne({
-                        username: username
+                        username: req.body.username,
                     }, function (err, find) {
                         School.findOne({
                             shortname: shortname
@@ -831,23 +853,40 @@ app.post("/:schoolname/admin/createstudent", function (req, res) {
     const shortname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
-        const username = req.body.username;
         const button = req.body.button;
 
         if (button == 'validate') {
-            User.findOne({
-                username: username
-            }, function (err, found) {
-                if (found) {
-                    res.send({
-                        message: 'User already exist',
-                    })
-                } else {
-                    res.send({
-                        message: 'User available',
-                    })
-                }
-            })
+            if(req.body.val == 'username'){
+                User.findOne({
+                    username: req.body.data,
+                }, function (err, found) {
+                    if (found) {
+                        res.send({
+                            message: 'User already exist',
+                        })
+                    } else {
+                        res.send({
+                            message: 'User available',
+                        })
+                    }
+                })
+            }
+
+            if(req.body.val == 'email'){
+                User.findOne({
+                    email: req.body.data,
+                }, function (err, found) {
+                    if (found) {
+                        res.send({
+                            message: 'User already exist',
+                        })
+                    } else {
+                        res.send({
+                            message: 'User available',
+                        })
+                    }
+                })
+            }
         }
 
 
@@ -856,12 +895,13 @@ app.post("/:schoolname/admin/createstudent", function (req, res) {
             const lastname = _.capitalize(req.body.lastname);
             const schoolname = req.user.schoolname;
             User.register({
-                username: username,
+                username: req.body.username,
                 firstname: firstname,
                 lastname: lastname,
                 schoolname: schoolname,
                 role: "student",
                 schoolshort: shortname,
+                email: req.body.email,
             }, req.body.password, function (err, user) {
                 if (err) {
                     console.log(err);
@@ -870,7 +910,7 @@ app.post("/:schoolname/admin/createstudent", function (req, res) {
                     })
                 } else {
                     User.findOne({
-                        username: username
+                        username: req.body.username,
                     }, function (err, find) {
                         School.findOne({
                             shortname: shortname
