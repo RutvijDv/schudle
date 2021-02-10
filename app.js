@@ -20,7 +20,9 @@ const {
     file
 } = require('googleapis/build/src/apis/file');
 const mime = require('mime-types');
-const { create } = require('lodash');
+const {
+    create
+} = require('lodash');
 
 const algorithm = 'aes-256-ctr';
 const secretKey = process.env.SECRETKEY; // length must be 32.
@@ -31,10 +33,14 @@ const iv = crypto.randomBytes(16);
 const scopes = [
     'https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/calendar',
-  ];
-  const {client_id, client_secret, redirect_uris} = credentials.installed;
-  const oAuth2Client = new google.auth.OAuth2(
-  client_id, client_secret, redirect_uris[0]);
+];
+const {
+    client_id,
+    client_secret,
+    redirect_uris
+} = credentials.installed;
+const oAuth2Client = new google.auth.OAuth2(
+    client_id, client_secret, redirect_uris[0]);
 
 const encrypt = (text) => {
     const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
@@ -109,6 +115,7 @@ const courseSchema = new mongoose.Schema({
     course_username: String,
     professorid: [],
     studentid: [],
+    email: [],
     items: [courseItemSchema],
     drivefolderid: String,
 });
@@ -121,7 +128,7 @@ const schoolSchema = new mongoose.Schema({
     studentid: [],
     professorid: [],
     courses: [],
-    googletoken : String,
+    googletoken: String,
 });
 
 const userSchema = new mongoose.Schema({
@@ -130,7 +137,7 @@ const userSchema = new mongoose.Schema({
     lastname: String,
     schoolname: String,
     schoolshort: String,
-    email:String,
+    email: String,
     role: {
         type: String,
         enum: ['professor', 'admin', 'student'],
@@ -594,9 +601,9 @@ app.get("/:schoolname/profile", function (req, res) {
 
 })
 
-app.post("/:schoolname/profile", function (req,res) {
+app.post("/:schoolname/profile", function (req, res) {
 
-    
+
 });
 
 //Admin Dashboard route
@@ -672,39 +679,43 @@ app.get("/:schoolname/student/dashboard", function (req, res) {
 
 
 
-app.get("/:schoolname/admin/configure", function(req,res){
-    if(req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname){
-       
-            const authUrl = oAuth2Client.generateAuthUrl({
-              access_type: 'offline',
-              scope: scopes,
-            });
+app.get("/:schoolname/admin/configure", function (req, res) {
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname) {
 
-            res.render("configure",{school: req.params.schoolname,url: authUrl});
+        const authUrl = oAuth2Client.generateAuthUrl({
+            access_type: 'offline',
+            scope: scopes,
+        });
+
+        res.render("configure", {
+            school: req.params.schoolname,
+            url: authUrl
+        });
     }
 })
 
 
-app.post("/:schoolname/admin/configure", function(req,res){
+app.post("/:schoolname/admin/configure", function (req, res) {
     oAuth2Client.getToken(req.body.key, (err, token) => {
         if (err) return console.error('Error retrieving access token', err);
 
-        School.findOne({shortname: req.params.schoolname}, function(err,found){
-            if(err){
+        School.findOne({
+            shortname: req.params.schoolname
+        }, function (err, found) {
+            if (err) {
                 console.log(err);
             }
-            if(found){
+            if (found) {
                 // console.log(JSON.parse(decrypt(JSON.parse(JSON.stringify(encrypt(JSON.stringify(token)))))));
                 found.googletoken = JSON.stringify(encrypt(JSON.stringify(token)));
-                found.save(function(err){
-                    if(err){
+                found.save(function (err) {
+                    if (err) {
                         console.log(err);
-                        res.redirect("/"+req.params.schoolname+"/admin/configure");
+                        res.redirect("/" + req.params.schoolname + "/admin/configure");
                     }
-                    res.redirect("/"+req.params.schoolname+"/admin/dashboard");
+                    res.redirect("/" + req.params.schoolname + "/admin/dashboard");
                 })
-            }
-            else{
+            } else {
                 res.render('error404');
             }
         })
@@ -712,16 +723,19 @@ app.post("/:schoolname/admin/configure", function(req,res){
     });
 
 })
-function authorize(school,response,callback) {
 
-    School.findOne({shortname: school},function(err,found){
-        if(err){
+function authorize(school, response, callback) {
+
+    School.findOne({
+        shortname: school
+    }, function (err, found) {
+        if (err) {
             console.log(err);
         }
-        if(found){
+        if (found) {
             oAuth2Client.setCredentials(JSON.parse(decrypt(JSON.parse(found.googletoken))));
-            if(!(oAuth2Client.credentials.access_token)){
-                response.redirect("/"+school+"/contact_admin");
+            if (!(oAuth2Client.credentials.access_token)) {
+                response.redirect("/" + school + "/contact_admin");
             }
             callback(oAuth2Client);
         }
@@ -729,7 +743,7 @@ function authorize(school,response,callback) {
 
 }
 
-app.get("/:schoolname/contact_admin",function(req,res){
+app.get("/:schoolname/contact_admin", function (req, res) {
     res.render("contact_admin");
 })
 
@@ -754,8 +768,8 @@ app.post("/:schoolname/admin/createprof", function (req, res) {
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
 
         if (req.body.button == 'validate') {
-                
-            if(req.body.val == 'username'){
+
+            if (req.body.val == 'username') {
                 User.findOne({
                     username: req.body.data,
                 }, function (err, found) {
@@ -771,7 +785,7 @@ app.post("/:schoolname/admin/createprof", function (req, res) {
                 })
             }
 
-            if(req.body.val == 'email'){
+            if (req.body.val == 'email') {
                 User.findOne({
                     email: req.body.data,
                 }, function (err, found) {
@@ -856,7 +870,7 @@ app.post("/:schoolname/admin/createstudent", function (req, res) {
         const button = req.body.button;
 
         if (button == 'validate') {
-            if(req.body.val == 'username'){
+            if (req.body.val == 'username') {
                 User.findOne({
                     username: req.body.data,
                 }, function (err, found) {
@@ -872,7 +886,7 @@ app.post("/:schoolname/admin/createstudent", function (req, res) {
                 })
             }
 
-            if(req.body.val == 'email'){
+            if (req.body.val == 'email') {
                 User.findOne({
                     email: req.body.data,
                 }, function (err, found) {
@@ -1011,10 +1025,14 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
         School.findOne({
             shortname: shortname
         }, function (err, find) {
-            authorize(req.params.schoolname,res,create_folder);
-            function create_folder(auth){
-                const drive = google.drive({ version: "v3", auth });
-                
+            authorize(req.params.schoolname, res, create_folder);
+
+            function create_folder(auth) {
+                const drive = google.drive({
+                    version: "v3",
+                    auth
+                });
+
                 var fileMetadata = {
                     'name': course_username,
                     'mimeType': 'application/vnd.google-apps.folder'
@@ -1024,39 +1042,39 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
                     fields: 'id'
                 }, function (err, file) {
                     if (err) {
-                      // Handle error
-                      console.error(err);
+                        // Handle error
+                        console.error(err);
                     } else {
-                    console.log('Folder Id: ', file.data.id);
-                    let folder_id = file.data.id;
-                    // console.log(typeof(file.data.id));
-                    const newCourse = new Course({
-                        coursename: coursename,
-                        course_username: course_username,
-                        schoolid: find._id,
-                        drivefolderid: folder_id,
-                    });
-
-                    console.log(newCourse);
-        
-                    newCourse.save(function () {
-                        Course.findOne({
-                            schoolid: find._id,
+                        console.log('Folder Id: ', file.data.id);
+                        let folder_id = file.data.id;
+                        // console.log(typeof(file.data.id));
+                        const newCourse = new Course({
                             coursename: coursename,
-                        }, function (err, founded) {
-                            find.courses.push(founded._id)
-                            find.save(function () {
-                                res.send({
-                                    message: "all saved",
-                                });
-                            })
+                            course_username: course_username,
+                            schoolid: find._id,
+                            drivefolderid: folder_id,
                         });
-                    })
+
+                        console.log(newCourse);
+
+                        newCourse.save(function () {
+                            Course.findOne({
+                                schoolid: find._id,
+                                coursename: coursename,
+                            }, function (err, founded) {
+                                find.courses.push(founded._id)
+                                find.save(function () {
+                                    res.send({
+                                        message: "all saved",
+                                    });
+                                })
+                            });
+                        })
                     }
                 });
             }
-            
-              
+
+
         })
     } else {
         res.send({
@@ -1204,6 +1222,7 @@ app.post("/:schoolname/admin/courses/:coursename/assignprof", function (req, res
             professors = [];
             professors.push(req.body.profname)
         }
+
         School.findOne({
             shortname: schoolname
         }, function (err, find) {
@@ -1213,9 +1232,12 @@ app.post("/:schoolname/admin/courses/:coursename/assignprof", function (req, res
             }, function (err, found) {
 
                 for (var i = 0; i < professors.length; i++) {
-                    found.professorid.push(professors[i]);
+                    var prof = professors[i].split(" ");
+
+                    found.professorid.push(prof[0]);
+                    found.email.push(prof[1])
                     User.findOne({
-                        _id: professors[i]
+                        _id: prof[0],
                     }, function (err, user) {
                         user.courses.push(found._id);
                         user.save(function () {});
@@ -1288,22 +1310,25 @@ app.post("/:schoolname/admin/courses/:coursename/removeprof", function (req, res
             professors = [];
             professors.push(req.body.profname);
         }
+
         School.findOne({
             shortname: schoolname
         }, function (err, find) {
 
             for (var i = 0; i < professors.length; i++) {
-                var prof_id = professors[i];
+                var prof = professors[i].split(" ");
+
                 Course.findOneAndUpdate({
                     coursename: coursename,
                     schoolid: find._id
                 }, {
                     $pull: {
-                        professorid: professors[i]
+                        professorid: prof[0],
+                        email: prof[1],
                     }
                 }, function (err, founded) {
                     User.findOneAndUpdate({
-                        _id: prof_id
+                        _id: prof[0],
                     }, {
                         $pull: {
                             courses: {
@@ -1390,9 +1415,12 @@ app.post("/:schoolname/admin/courses/:coursename/enrollstudent", function (req, 
             }, function (err, found) {
 
                 for (var i = 0; i < students.length; i++) {
-                    found.studentid.push(students[i]);
+                    var student = students[i].split(" ");
+
+                    found.studentid.push(student[0])
+                    found.email.push(student[1]);
                     User.findOne({
-                        _id: students[i]
+                        _id: student[0],
                     }, function (err, user) {
                         user.courses.push(found._id);
                         user.save(function () {});
@@ -1469,17 +1497,19 @@ app.post("/:schoolname/admin/courses/:coursename/removestudent", function (req, 
             shortname: schoolname
         }, function (err, find) {
             for (var i = 0; i < students.length; i++) {
-                var stud_id = students[i];
+                var student = students[i].split(" ");
+
                 Course.findOneAndUpdate({
                     coursename: coursename,
                     schoolid: find._id
                 }, {
                     $pull: {
-                        studentid: students[i]
+                        studentid: student[0],
+                        email: student[1],
                     }
                 }, function (err, founded) {
                     User.findOneAndUpdate({
-                        _id: stud_id
+                        _id: student[0]
                     }, {
                         $pull: {
                             courses: {
@@ -1550,7 +1580,7 @@ app.get('/:schoolname/:course_id', function (req, res) {
 // add course content
 
 app.get('/:schoolname/:course_id/add_course_cont', function (req, res) {
-    
+
     // authorize(req.params.schoolname,res,list_files);
 
     // function list_files(auth){
@@ -1571,7 +1601,7 @@ app.get('/:schoolname/:course_id/add_course_cont', function (req, res) {
     //             console.log(err);
     //         }
     //     })
-        
+
     // }
 
     res.render("add_course_cont", {
@@ -1604,43 +1634,47 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
                     body: fs.createReadStream(req.file.destination + '/' + req.file.filename), // Reading the file from our server
                 };
 
-                authorize(req.params.schoolname,res,create_file);
+                authorize(req.params.schoolname, res, create_file);
 
-                function create_file(auth){
-                const drive = google.drive({ version: "v3", auth });
-                drive.files.create({
-                        resource: fileMetadata,
-                        media: media,
-                    },
-                    function (err, file) {
-                        if (err) {
-                            // Handle error
-                            console.error(err.msg);
-                        } else {
-                            // if file upload success then return the unique google drive id
-                            console.log("sucess");
-                            fs.unlink(req.file.destination + '/' + req.file.filename, (err) => {
-                                if (err) {
-                                    console.error(err)
-                                    return
-                                }
-                            })
-                            // console.log(file);
-                            filedet = file;
-                            found.items.push({
-                                name: req.body.content_name,
-                                google_id: file.data.id,
-                                extension: mime.extension(file.data.mimeType)
-                            });
-                            found.save(function (err) {
-                                if (!err) {
-                                    res.redirect("/" + req.params.schoolname + "/" + req.params.course_id);
-                                }
-                                console.log(err);
-                            })
+                function create_file(auth) {
+                    const drive = google.drive({
+                        version: "v3",
+                        auth
+                    });
+                    drive.files.create({
+                            resource: fileMetadata,
+                            media: media,
+                        },
+                        function (err, file) {
+                            if (err) {
+                                // Handle error
+                                console.error(err.msg);
+                            } else {
+                                // if file upload success then return the unique google drive id
+                                console.log("sucess");
+                                fs.unlink(req.file.destination + '/' + req.file.filename, (err) => {
+                                    if (err) {
+                                        console.error(err)
+                                        return
+                                    }
+                                })
+                                // console.log(file);
+                                filedet = file;
+                                found.items.push({
+                                    name: req.body.content_name,
+                                    google_id: file.data.id,
+                                    extension: mime.extension(file.data.mimeType)
+                                });
+                                found.save(function (err) {
+                                    if (!err) {
+                                        res.redirect("/" + req.params.schoolname + "/" + req.params.course_id);
+                                    }
+                                    console.log(err);
+                                })
+                            }
                         }
-                    }
-                );}
+                    );
+                }
 
             } else {
                 console.log("not found");
@@ -1654,10 +1688,14 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
 app.post('/:schoolname/download/:filename/:fileid', function (req, res) {
     var fileId = req.params.fileid;
     var dest = fs.createWriteStream('./public/' + req.params.filename);
-    
-    authorize(req.params.schoolname,res,download_file);
-    function download_file(auth){
-        const drive = google.drive({ version: "v3", auth });
+
+    authorize(req.params.schoolname, res, download_file);
+
+    function download_file(auth) {
+        const drive = google.drive({
+            version: "v3",
+            auth
+        });
         drive.files
             .get({
                 fileId,
@@ -1670,15 +1708,16 @@ app.post('/:schoolname/download/:filename/:fileid', function (req, res) {
                     .on('end', () => {
                         console.log('\nDone downloading file.');
                         const file = "./public/" + req.params.filename; // file path from where node.js will send file to the requested user
-                        res.download(file, function(err){
+                        res.download(file, function (err) {
                             //CHECK FOR ERROR
                             // console.log("inside download")
-                            fs.unlink('./public/'+req.params.filename, (err) => {
-                                    if (err) {
-                                      console.error(err)
-                                      return
-                                }})
-                          }); // Set disposition and send it.
+                            fs.unlink('./public/' + req.params.filename, (err) => {
+                                if (err) {
+                                    console.error(err)
+                                    return
+                                }
+                            })
+                        }); // Set disposition and send it.
                         //   
                     })
                     .on('error', (err) => {
@@ -1722,10 +1761,14 @@ app.post('/:schoolname/:course_id/delete_course_cont', function (req, res) {
             // console.log(Array.isArray(req.body.delete));
             found.items.forEach(function (item, i) {
                 if (item._id == req.body.delete) {
-                    
-                    authorize(req.params.schoolname,res,delete_content);
-                    function delete_content(auth){
-                        const drive = google.drive({ version: "v3", auth });
+
+                    authorize(req.params.schoolname, res, delete_content);
+
+                    function delete_content(auth) {
+                        const drive = google.drive({
+                            version: "v3",
+                            auth
+                        });
                         drive.files.delete({
                                 fileId: item.google_id,
                             })
@@ -1738,7 +1781,7 @@ app.post('/:schoolname/:course_id/delete_course_cont', function (req, res) {
                                     }
                             );
                     }
-                            
+
                     found.items.splice(i, 1);
                 }
             })
