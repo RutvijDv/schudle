@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>create_course_event</title>
+</head>
+<body>
+    <form action="/<%=school%>/<%=courseid%>/create_course_event" method="POST">
+        <input type="text" name="summary" placeholder="Event Name">
+        <input type="text" name="description" placeholder="description">
+        <p>start</p>
+        <input type="date" name="startdate">
+        <input type="time" name="starttime">
+        <p>end</p>
+        <input type="date" name="enddate">
+        <input type="time" name="endtime">
+        <p>email reminder</p>
+        <input type="number" name="emailhours" placeholder="hours" value="0">
+        <input type="number" name="emailminutes" placeholder="minutes" value="0">
+        <p>pop up reminder</p>
+        <input type="number" name="pophours" placeholder="hours" value="0">
+        <input type="number" name="popminutes" placeholder="minutes" value="0">
+
+        <button type="submit" name="create_event">create</button>
+    </form>
+</body>
+</html>

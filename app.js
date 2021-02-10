@@ -21,10 +21,12 @@ const {
 } = require('googleapis/build/src/apis/file');
 const mime = require('mime-types');
 const { create } = require('lodash');
+const uniqid = require('uniqid');
 
 const algorithm = 'aes-256-ctr';
 const secretKey = process.env.SECRETKEY; // length must be 32.
 const iv = crypto.randomBytes(16);
+
 
 
 // drive configuration 
@@ -102,6 +104,12 @@ const courseItemSchema = new mongoose.Schema({
     extension: String,
 })
 
+const eventSchema = new mongoose.Schema({
+    summary: String,
+    description: String,
+    start : Date,
+    googleid : String
+})
 
 const courseSchema = new mongoose.Schema({
     schoolid: String,
@@ -110,6 +118,7 @@ const courseSchema = new mongoose.Schema({
     professorid: [],
     studentid: [],
     items: [courseItemSchema],
+    event: [eventSchema],
     drivefolderid: String,
 });
 
@@ -1711,6 +1720,67 @@ app.post('/:schoolname/:course_id/delete_course_cont', function (req, res) {
         })
     })
 
+})
+
+//calendar
+app.get("/:schoolname/:courseid/create_course_event",function(req,res){
+    if(req.isAuthenticated() && req.user.role == "professor"){
+        res.render("create_course_event",{school: req.params.schoolname, courseid: req.params.courseid})
+    }else{
+        if(req.isAuthenticated() && req.user.role == "student"){
+            res.redirect("/"+req.params.schoolname+"/student/dashboard");
+        }
+        if(req.isAuthenticated() && req.user.role == "admin"){
+            res.redirect("/"+req.params.schoolname+"/admin/dashboard");
+        }
+    }
+});
+
+app.post("/:schoolname/:courseid/create_course_event", function(req,res){
+    if(req.isAuthenticated() && req.user.role == "professor"){
+        Course.findOne({_id: req.params.courseid}, function(err,found){
+            if(err){
+                console.log(err);
+            }
+            if(found){
+                var event = {
+                    'summary': req.body.summary,
+                    'location': 'schudle',
+                    'description': req.body.description,
+                    'start': {
+                      'dateTime': req.body.startdate + 'T' + req.body.starttime + '+05:30',
+                      'timeZone': 'UTC+05:30',
+                    },
+                    'end': {
+                      'dateTime': req.body.enddate + 'T' + req.body.endtime + '+05:30',
+                      'timeZone': 'UTC+05:30',
+                    },
+                    'attendees': [],
+                    'conferenceData': {
+                      'createRequest': {
+                        'requestId': uniqid(),
+                        'conferenceSolutionKey': {'type': "hangoutsMeet" },
+                      },
+                    },
+                    'reminders': {
+                      'useDefault': false,
+                      'overrides': [
+                        {'method': 'email', 'minutes': req.body.emailhours*60 + req.body.emailminutes},
+                        {'method': 'popup', 'minutes': req.body.pophours*60 + req.body.popminutes},
+                      ],
+                    },
+                  };
+            }
+        })
+
+    }else{
+        if(req.isAuthenticated() && req.user.role == "student"){
+            res.redirect("/"+req.params.schoolname+"/student/dashboard");
+        }
+        if(req.isAuthenticated() && req.user.role == "admin"){
+            res.redirect("/"+req.params.schoolname+"/admin/dashboard");
+        }
+    }
 })
 
 app.get('/error404', function (req, res) {
