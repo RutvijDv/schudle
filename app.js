@@ -11,16 +11,12 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const multer = require('multer');
 const path = require('path');
-const {
-    google
-} = require('googleapis');
+const {google} = require('googleapis');
 const credentials = require('./credentials.json');
 const fs = require('fs');
-const {
-    file
-} = require('googleapis/build/src/apis/file');
+const {file} = require('googleapis/build/src/apis/file');
 const mime = require('mime-types');
-const { create } = require('lodash');
+const { create, uniq, forEach } = require('lodash');
 const uniqid = require('uniqid');
 
 const algorithm = 'aes-256-ctr';
@@ -112,7 +108,11 @@ const eventSchema = new mongoose.Schema({
     summary: String,
     description: String,
     start : Date,
-    googleid : String
+    googleid : String,
+    courses: [],
+    general: String,
+    eventlink: String,
+    meetlink: String
 })
 
 const courseSchema = new mongoose.Schema({
@@ -135,6 +135,7 @@ const schoolSchema = new mongoose.Schema({
     studentid: [],
     professorid: [],
     courses: [],
+    events: [eventSchema],
     googletoken: String,
 });
 
@@ -1803,23 +1804,129 @@ app.post('/:schoolname/:course_id/delete_course_cont', function (req, res) {
 
 })
 
+
+
+
+
+
+
+
+
 //calendar
 app.get("/:schoolname/:courseid/create_course_event",function(req,res){
-    if(req.isAuthenticated() && req.user.role == "professor"){
+    if(req.isAuthenticated() && req.user.role == "professor" && req.user.schoolshort == req.params.schoolname){
         res.render("create_course_event",{school: req.params.schoolname, courseid: req.params.courseid})
     }else{
-        if(req.isAuthenticated() && req.user.role == "student"){
-            res.redirect("/"+req.params.schoolname+"/student/dashboard");
-        }
-        if(req.isAuthenticated() && req.user.role == "admin"){
-            res.redirect("/"+req.params.schoolname+"/admin/dashboard");
-        }
+        res.redirect("/" + req.params.schoolname);
     }
 });
 
-app.post("/:schoolname/:courseid/create_course_event", function(req,res){
-    if(req.isAuthenticated() && req.user.role == "professor"){
-        Course.findOne({_id: req.params.courseid}, function(err,found){
+
+app.get("/:schoolname/admin/eventpage", function(req,res){
+    if(req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname){
+        School.findOne({shortname: req.params.schoolname},function(err,found){
+            if(err){
+                console.log(err);
+            }
+            if(found){
+                res.render("admin_event_page",{school: found.shortname, events : found.events});
+            }
+        })  
+    }else{
+        res.redirect("/" + req.params.schoolname);
+    }
+})
+
+
+app.get("/:schoolname/professor/eventpage", function(req , res){
+    if(req.isAuthenticated() && req.user.role == "professor" && req.user.schoolshort == req.params.schoolname){
+        
+        var allEvent = [];
+
+        Course.find({'_id' : {$in: req.user.courses}}, function(err,found){
+            if(err){
+                console.log(err);
+            }
+            if(found){
+
+                found.forEach(function(course){
+                    allEvent = allEvent.concat(course.event);
+                })
+
+                allEvent = allEvent.map(JSON.stringify);
+                var uniqueset = new Set(allEvent);
+                allEvent = Array.from(uniqueset).map(JSON.parse);
+                res.render("event_page",{school: req.params.schoolname, events : allEvent});
+            }
+        })
+            
+    }else{
+        res.redirect("/" + req.params.schoolname);
+    }
+})
+
+
+
+app.get("/:schoolname/student/eventpage", function(req,res){
+    if(req.isAuthenticated() && req.user.role == "student" && req.user.schoolshort == req.params.schoolname){
+        
+        var allEvent = [];
+
+        Course.find({'_id' : {$in: req.user.courses}}, function(err,found){
+            if(err){
+                console.log(err);
+            }
+            if(found){
+
+                found.forEach(function(course){
+                    allEvent = allEvent.concat(course.event);
+                })
+
+                allEvent = allEvent.map(JSON.stringify);
+                var uniqueset = new Set(allEvent);
+                allEvent = Array.from(uniqueset).map(JSON.parse);
+                res.render("event_page",{school: req.params.schoolname, events : allEvent});
+            }
+        })
+            
+    }else{
+        res.redirect("/"+req.params.schoolname);
+    }
+})
+
+
+
+app.get("/:schoolname/admin/create_event", function(req,res){
+    if(req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname){
+        School.findOne({ shortname: req.params.schoolname}, function(err, scl){
+            if(err){
+                console.log(err);
+            }
+            if(scl){
+                Course.find({ '_id' : { $in : scl.courses}},function(err,found){
+                    if(err){
+                        console.log(err);
+                    }
+                    if(found){
+                        res.render("create_event",{school: req.params.schoolname, courses: found});
+                    }
+                })
+            }
+        })   
+    }else{
+        res.redirect("/" + req.params.schoolname);
+    }
+})
+
+
+app.post("/:schoolname/create_event", function(req,res){
+    if(req.isAuthenticated() && (req.user.role == "professor" || req.user.role == "admin") && req.user.schoolshort == req.params.schoolname){
+        var courses = req.body.course;
+        if(typeof(courses)=="string"){
+            courses = [];
+            courses.push(req.body.course);
+        }
+        Course.find({'_id': { $in : courses}}, function(err,found){
             if(err){
                 console.log(err);
             }
@@ -1829,20 +1936,14 @@ app.post("/:schoolname/:courseid/create_course_event", function(req,res){
                     'location': 'schudle',
                     'description': req.body.description,
                     'start': {
-                      'dateTime': req.body.startdate + 'T' + req.body.starttime + '+05:30',
+                      'dateTime': req.body.startdate + 'T' + req.body.starttime + ':00+05:30',
                       'timeZone': 'UTC+05:30',
                     },
                     'end': {
-                      'dateTime': req.body.enddate + 'T' + req.body.endtime + '+05:30',
+                      'dateTime': req.body.enddate + 'T' + req.body.endtime + ':00+05:30',
                       'timeZone': 'UTC+05:30',
                     },
                     'attendees': [],
-                    'conferenceData': {
-                      'createRequest': {
-                        'requestId': uniqid(),
-                        'conferenceSolutionKey': {'type': "hangoutsMeet" },
-                      },
-                    },
                     'reminders': {
                       'useDefault': false,
                       'overrides': [
@@ -1850,19 +1951,222 @@ app.post("/:schoolname/:courseid/create_course_event", function(req,res){
                         {'method': 'popup', 'minutes': req.body.pophours*60 + req.body.popminutes},
                       ],
                     },
-                  };
+                };
+                var evt = {
+                    calendarId:'primary',
+                    sendNotifications: true,
+                    sendUpdates: 'all',
+                    resource: event,
+                }
+
+                if(req.body.meet=="yes"){
+                    event.conferenceData = {
+                        'createRequest': {
+                          'requestId': uniqid(),
+                          'conferenceSolutionKey': {'type': "hangoutsMeet" },
+                        },
+                    };
+                    evt.conferenceDataVersion= 1;
+                    console.log(event);
+                    console.log(evt);
+                }
+
+                found.forEach(function(course){
+                    course.email.forEach(function(participant){
+                        event.attendees.push({"email" : participant});
+                    })
+                });
+
+                authorize(req.params.schoolname,res,create_event);
+
+
+                function create_event(auth){
+                   const calendar = google.calendar({version: 'v3', auth});
+                   calendar.events.insert(evt, function(err, event) {
+                    if (err) {
+                        res.send(JSON.stringify(err));
+                    }
+                    if(event){
+                        var localevt = {
+                            summary: event.data.summary,
+                            description: event.data.description,
+                            start: event.data.start.dateTime,
+                            googleid: event.data.id,
+                            courses: courses,
+                            general: req.body.general,
+                            eventlink: event.data.htmlLink
+                        }
+                        if(event.data.hangoutLink){
+                            localevt.meetlink = event.data.hangoutLink;
+                        }
+                        if(req.body.general=='false'){
+                            Course.updateMany({'_id' : { $in : courses}}, {$push : { event : localevt}}, function(err, result) {
+                                if (err) {
+                                  console.log(err);
+                                } else {
+                                  console.log(result);
+                                }
+                              });
+                              res.redirect("/"+ req.params.schoolname + "/professor/dashboard");
+                        }else if(req.body.general=='true'){
+                            Course.updateMany({'_id' : { $in : courses}}, {$push : { event : localevt}}, function(err, result) {
+                                if (err) {
+                                  console.log(err);
+                                } else {
+                                  console.log(result);
+                                }
+                              });
+                            School.updateOne({shortname: req.params.schoolname}, {$push : {events : localevt}}, function(err,result){
+                                if(err){
+                                    console.log(err);
+                                }
+                                if(result){
+                                    console.log(result);
+                                }
+                            });
+                            res.redirect("/"+ req.params.schoolname + "/admin/dashboard");
+                        } 
+                        
+                    }
+                  });
+                }
             }
         })
-
+        
     }else{
-        if(req.isAuthenticated() && req.user.role == "student"){
-            res.redirect("/"+req.params.schoolname+"/student/dashboard");
-        }
-        if(req.isAuthenticated() && req.user.role == "admin"){
-            res.redirect("/"+req.params.schoolname+"/admin/dashboard");
-        }
+        res.redirect("/" + req.params.schoolname);
     }
 })
+
+
+
+app.get("/:schoolname/admin/delete_event", function(req,res){
+    if(req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname){
+        School.findOne({ shortname : req.params.schoolname},function(err,found){
+            if(err){
+                console.log(err);
+            }
+            if(found){
+                res.render("delete_event",{school: req.params.schoolname, events: found.events, courseid: ""});
+            }
+        })
+        
+    }else{
+        res.redirect("/" + req.params.schoolname);
+    } 
+})
+
+
+
+app.post("/:schoolname/admin/delete_event", function(req,res){
+    if(req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname){
+        School.findOne({ shortname : req.params.schoolname},function(err,found){
+            if(err){
+                console.log(err);
+            }
+            if(found){
+                found.events.forEach(function(evt,i){
+                    if(evt._id == req.body.event){
+                        authorize(req.params.schoolname,res,delete_event);
+
+                        function delete_event(auth){
+                            const calendar = google.calendar({version: 'v3', auth});
+                            calendar.events.delete({
+                                calendarId: 'primary',
+                                eventId : evt.googleid,
+                              }, function(err, event) {
+                                    if (err) {
+                                      console.log(err);
+                                    }
+                              });
+                        }
+                        found.events.splice(i,1);
+                        Courses.updateMany({'id' : {$in : evt.courses}}, {$pull : {event : evt._id}}, function(err,result){
+                            if(err){
+                                console.log(err);
+                            }
+                            if(result){
+                                console.log(result);
+                            }
+                        })
+                    }
+                })
+            }
+            found.save(function(err){
+                if(err){
+                console.log(err);
+                }
+                res.redirect("/" + req.params.schoolname + "/admin/eventpage");
+            })
+
+        })
+        
+    }else{
+        res.redirect("/" + req.params.schoolname);
+    }
+})
+
+
+
+app.get("/:schoolname/:courseid/delete_course_event", function(req,res){
+    if(req.isAuthenticated() && req.user.role == "professor" && req.user.schoolshort == req.params.schoolname){
+        Course.findOne({ '_id' : req.params.courseid},function(err,found){
+            if(err){
+                console.log(err);
+            }
+            if(found){
+                var courseEvent = found.event.filter(o => o.general=='false');
+                res.render("delete_event",{school: req.params.schoolname,courseid: req.params.courseid, events: courseEvent});
+            }
+        })
+        
+    }else{
+        res.redirect("/" + req.params.schoolname);
+    }
+})
+
+
+app.post("/:schoolname/:courseid/delete_course_event", function(req,res){
+    if(req.isAuthenticated() && req.user.role == "professor" && req.user.schoolshort == req.params.schoolname){
+        Course.findOne({ '_id' : req.params.courseid},function(err,found){
+            if(err){
+                console.log(err);
+            }
+            if(found){
+                found.event.forEach(function(evt,i){
+                    if(evt._id == req.body.event){
+                        authorize(req.params.schoolname,res,delete_event);
+
+                        function delete_event(auth){
+                            const calendar = google.calendar({version: 'v3', auth});
+                            calendar.events.delete({
+                                calendarId: 'primary',
+                                eventId : evt.googleid,
+                              }, function(err, event) {
+                                    if (err) {
+                                      console.log(err);
+                                    }
+                              });
+                        }
+                        found.event.splice(i,1);
+                    }
+                })
+            }
+            found.save(function(err){
+                if(err){
+                console.log(err);
+                }
+                res.redirect("/" + req.params.schoolname + "/" + req.params.courseid);
+            })
+
+        })
+        
+    }else{
+        res.redirect("/" + req.params.schoolname);
+    }
+})
+
+
 
 app.get('/error404', function (req, res) {
     res.render('error404');

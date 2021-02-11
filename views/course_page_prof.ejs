@@ -24,6 +24,11 @@
                 <%=student%><br>
                     <% })%>
 
+                    <h4>Course Events</h4>
+                    <%found.event.forEach(function(evt){%>
+                        <%=evt%><br>
+                            <% })%>
+
     <form action="/<%=school%>/<%=found._id%>/add_course_cont" method="GET">
         <button type="submit">Add content</button>
     </form>
@@ -34,6 +39,10 @@
 
     <form action="/<%=school%>/<%=found._id%>/create_course_event" method="GET">
         <button type="submit">Create Event</button>
+    </form>
+
+    <form action="/<%=school%>/<%=found._id%>/delete_course_event" method="GET">
+        <button type="submit">Delete Event</button>
     </form>
 
     <form action="/<%=school%>/professor/dashboard" method="GET">

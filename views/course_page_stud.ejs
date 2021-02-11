@@ -19,14 +19,20 @@
         <%=profs%><br>
             <% })%>
     
-            <h4>Students</h4>
-            <%students.forEach(function(student){%>
-                <%=student%><br>
-                    <% })%>
+    <h4>Students</h4>
+    <%students.forEach(function(student){%>
+        <%=student%><br>
+    <% })%>
 
-                    <form action="/<%=school%>/student/dashboard" method="GET">
-                        <button type="submit">dashboard</button>
-                    </form>
+
+    <h4>Course Events</h4>
+        <%found.event.forEach(function(evt){%>
+            <%=evt%><br>
+        <% })%>
+        <br>
+    <form action="/<%=school%>/student/dashboard" method="GET">
+        <button type="submit">dashboard</button>
+    </form>
 
 </body>
 </html>
