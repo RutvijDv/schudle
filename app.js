@@ -146,6 +146,10 @@ const userSchema = new mongoose.Schema({
     schoolname: String,
     schoolshort: String,
     email: String,
+    profileimg:{
+            data: Buffer,
+            contentType: String
+    },
     role: {
         type: String,
         enum: ['professor', 'admin', 'student'],
@@ -247,6 +251,10 @@ app.post("/register", function (req, res) {
         email: schoolemail,
         role: "admin",
         schoolshort: shortname,
+        profileimg: {
+            data: fs.readFileSync(path.join(__dirname + '/public/images/default_profile.png' )),
+            contentType: 'image/png'
+        }
     }, req.body.password, function (err) {
         if (err) {
             console.log(err);
@@ -631,6 +639,7 @@ app.get("/:schoolname/admin/dashboard", function (req, res) {
                     no_student: find.studentid.length,
                     no_professor: find.professorid.length,
                     name: req.user.firstname + ' ' + req.user.lastname,
+                    info: req.user,
                 });
             })
         })
@@ -1134,6 +1143,7 @@ app.get("/:schoolname/admin/courses/:coursename", function (req, res) {
                             name: req.user.firstname + " " + req.user.lastname,
                             professors: professors,
                             students: students,
+                            info: req.user,
                         });
                     })
                 } else {

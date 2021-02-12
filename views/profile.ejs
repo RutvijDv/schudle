@@ -66,7 +66,8 @@
                                             <%=info.firstname + " " + info.lastname%>
                                         </span>
                                         <img class="border rounded-circle img-profile"
-                                            src="/images/team/shrushti.jpg"></a>
+                                            src="data:image/<%=info.profileimg.contentType%>;base64,
+                                            <%=info.profileimg.data.toString('base64')%>"></a>
                                     <div class="dropdown-menu shadow dropdown-menu-right animated--grow-in"><a
                                             class="dropdown-item" href="/<%=school%>/profile"><i
                                                 class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>&nbsp;Profile</a>
@@ -86,7 +87,8 @@
                     <div class="row mb-3">
                          <div class="col-lg-4">
                             <div class="card mb-3">
-                                <div class="card-body text-center shadow"><img class="rounded-circle mb-3 mt-4" src="assets/img/dogs/image2.jpeg" width="160" height="160">
+                                <div class="card-body text-center shadow"><img class="rounded-circle mb-3 mt-4" src="data:image/<%=info.profileimg.contentType%>;base64,
+                                    <%=info.profileimg.data.toString('base64')%>" width="160" height="160">
                                     <div class="mb-3"><button class="btn btn-primary btn-sm" type="button">Change Photo</button></div>
                                 </div>
                             </div>
