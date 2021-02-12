@@ -617,9 +617,38 @@ app.get("/:schoolname/profile", function (req, res) {
 
 })
 
-app.post("/:schoolname/profile", function (req, res) {
 
 
+
+
+app.get("/:schoolname/profile/change_photo",function(req,res){
+    if(req.isAuthenticated()){
+    res.render("change_profile_pic",{school:req.params.schoolname});
+    }
+    else{
+        res.redirect("/"+req.params.schoolname);
+    }
+})
+
+app.post("/:schoolname/profile/change_photo", uploadDisk.single("file"), function (req, res) {
+    
+    User.findOne({_id : req.user._id},function(err,found){
+        if(err){
+            console.log(err);
+        }
+        if(found){
+            found.profileimg= {
+                data: fs.readFileSync(path.join(__dirname + '/public/' + req.file.filename)),
+                contentType: req.file.mimetype,
+            }
+            found.save(function(err){
+                if(err){
+                    console.log(err);
+                }
+                res.redirect("/"+req.params.schoolname+"/profile");
+            })
+        }
+    })
 });
 
 //Admin Dashboard route

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Profile Pic</title>
+
+    <style>
+        img{
+            max-width:180px;
+            border-radius: 100rem;
+        }
+    </style>
+</head>
+<body>
+    <form action="/<%=school%>/profile/change_photo" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" id="imgInp">
+        <button type="submit" name="submit" value="profileimg">Submit</button>
+    </form>
+    <img id="blah" src="" alt="your image" >
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    $('#blah')
+                        .attr('src', e.target.result);
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $("#imgInp").change(function() {
+            readURL(this);
+        });
+    </script>
+</body>
+</html>

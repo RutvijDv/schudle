@@ -89,7 +89,11 @@
                             <div class="card mb-3">
                                 <div class="card-body text-center shadow"><img class="rounded-circle mb-3 mt-4" src="data:image/<%=info.profileimg.contentType%>;base64,
                                     <%=info.profileimg.data.toString('base64')%>" width="160" height="160">
-                                    <div class="mb-3"><button class="btn btn-primary btn-sm" type="button">Change Photo</button></div>
+                                    <div class="mb-3">
+                                        <form action="/<%=school%>/profile/change_photo" method="GET">
+                                            <button class="btn btn-primary btn-sm" type="submit" >Change Photo</button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                             <!-- <div class="card shadow mb-4">
@@ -237,7 +241,7 @@
                                             <p class="text-primary m-0 font-weight-bold">Contact Settings</p>
                                         </div>
                                         <div class="card-body">
-                                            <form>
+                                            <form action="<%=school%>/profile" method="POST">
                                                 <div class="form-group"><label for="address"><strong>Address</strong></label><input class="form-control" type="text" placeholder="Sunset Blvd, 38" name="address"></div>
                                                 <div class="form-row">
                                                     <div class="col-6">
