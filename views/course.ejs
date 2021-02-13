@@ -181,7 +181,8 @@
                                             <%professors.forEach(function(profs){%>
                                             <tr>
                                                 <td><img class="rounded-circle mr-2" width="30" height="30"
-                                                        src="assets/img/avatars/avatar1.jpeg"><%=profs%></td>
+                                                        src="data:image/<%=profs.profileimg.contentType%>;base64,
+                                                        <%=profs.profileimg.data.toString('base64')%>"><%=profs.username%></td>
                                                 <td>teacher</td>
                                                 <td>Tokyo</td>
                                                 <td>33</td>
@@ -251,7 +252,8 @@
                                             <%students.forEach(function(student){%>
                                             <tr>
                                                 <td><img class="rounded-circle mr-2" width="30" height="30"
-                                                        src="assets/img/avatars/avatar1.jpeg"><%=student%></td>
+                                                        src="data:image/<%=student.profileimg.contentType%>;base64,
+                                                        <%=student.profileimg.data.toString('base64')%>"><%=student.username%></td>
                                                 <td>student</td>
                                                 <td>Tokyo</td>
                                                 <td>33</td>

@@ -146,6 +146,8 @@ const userSchema = new mongoose.Schema({
     schoolname: String,
     schoolshort: String,
     email: String,
+    address: String,
+    phone: String,
     profileimg:{
             data: Buffer,
             contentType: String
@@ -617,7 +619,28 @@ app.get("/:schoolname/profile", function (req, res) {
 
 })
 
-
+app.post("/:schoolname/profile", function(req,res){
+    if(req.isAuthenticated()){
+        User.findOne({_id: req.user._id},function(err,found){
+            if(err){
+                console.log(err);
+            }
+            if(found){
+                found.phone = req.body.phone;
+                found.address = req.body.address;
+                found.save(function(err){
+                    if(err){
+                        console.log(err);
+                    }
+                    res.redirect("/"+req.params.schoolname+"/profile")
+                })
+            }
+        })
+    }
+    else{
+        res.redirect("/"+req.params.schoolname);
+    }
+})
 
 
 
@@ -632,23 +655,34 @@ app.get("/:schoolname/profile/change_photo",function(req,res){
 
 app.post("/:schoolname/profile/change_photo", uploadDisk.single("file"), function (req, res) {
     
-    User.findOne({_id : req.user._id},function(err,found){
-        if(err){
-            console.log(err);
-        }
-        if(found){
-            found.profileimg= {
-                data: fs.readFileSync(path.join(__dirname + '/public/' + req.file.filename)),
-                contentType: req.file.mimetype,
+    if(req.isAuthenticated()){
+        User.findOne({_id : req.user._id},function(err,found){
+            if(err){
+                console.log(err);
             }
-            found.save(function(err){
-                if(err){
-                    console.log(err);
+            if(found){
+                found.profileimg= {
+                    data: fs.readFileSync(path.join(__dirname + '/public/' + req.file.filename)),
+                    contentType: req.file.mimetype,
                 }
-                res.redirect("/"+req.params.schoolname+"/profile");
-            })
-        }
-    })
+                found.save(function(err){
+                    if(err){
+                        console.log(err);
+                    }
+                    fs.unlink(__dirname + '/public/' + req.file.filename, (err) => {
+                        if (err) {
+                            console.error(err)
+                        }
+                        res.redirect("/"+req.params.schoolname+"/profile");
+                    })
+                    
+                })
+            }
+        })
+    }
+    else{
+        res.redirect("/"+req.params.schoolname);
+    }
 });
 
 //Admin Dashboard route
@@ -690,7 +724,8 @@ app.get("/:schoolname/professor/dashboard", function (req, res) {
             res.render("professor_dash", {
                 name: req.user.firstname + ' ' + req.user.lastname,
                 school: schoolname,
-                courses: find
+                courses: find,
+                info: req.user
             })
         });
     } else {
@@ -712,7 +747,8 @@ app.get("/:schoolname/student/dashboard", function (req, res) {
             res.render("student_dash", {
                 name: req.user.firstname + ' ' + req.user.lastname,
                 school: schoolname,
-                courses: find
+                courses: find,
+                info: req.user
             })
         });
     } else {
@@ -863,6 +899,10 @@ app.post("/:schoolname/admin/createprof", function (req, res) {
                 role: "professor",
                 schoolshort: shortname,
                 email: req.body.email,
+                profileimg: {
+                    data: fs.readFileSync(path.join(__dirname + '/public/images/default_profile.png' )),
+                    contentType: 'image/png'
+                },
             }, req.body.password, function (err, user) {
                 if (err) {
                     console.log(err);
@@ -962,6 +1002,10 @@ app.post("/:schoolname/admin/createstudent", function (req, res) {
                 role: "student",
                 schoolshort: shortname,
                 email: req.body.email,
+                profileimg: {
+                    data: fs.readFileSync(path.join(__dirname + '/public/images/default_profile.png' )),
+                    contentType: 'image/png'
+                }
             }, req.body.password, function (err, user) {
                 if (err) {
                     console.log(err);
@@ -1163,8 +1207,8 @@ app.get("/:schoolname/admin/courses/:coursename", function (req, res) {
 
 
                         for (var i = 0; i < founded.length; i++) {
-                            if (founded[i].role == "student") students.push(founded[i].username);
-                            if (founded[i].role == "professor") professors.push(founded[i].username);
+                            if (founded[i].role == "student") students.push(founded[i]);
+                            if (founded[i].role == "professor") professors.push(founded[i]);
                         }
                         res.render("course", {
                             school: schoolname,
@@ -1243,6 +1287,8 @@ app.get("/:schoolname/admin/courses/:coursename/assignprof", function (req, res)
                             school: schoolname,
                             coursename: coursename,
                             professors: professors,
+                            info: req.user,
+                            name: req.user.firstname + ' ' + req.user.lastname,
                             message: ""
                         });
                     })
@@ -1331,6 +1377,8 @@ app.get("/:schoolname/admin/courses/:coursename/removeprof", function (req, res)
                             school: schoolname,
                             coursename: coursename,
                             professors: professors,
+                            info: req.user,
+                            name: req.user.firstname + ' ' + req.user.lastname,
                             message: ""
                         });
                     })
@@ -1427,6 +1475,8 @@ app.get("/:schoolname/admin/courses/:coursename/enrollstudent", function (req, r
                             school: schoolname,
                             coursename: coursename,
                             students: students,
+                            info: req.user,
+                            name: req.user.firstname + ' ' + req.user.lastname,
                             message: ""
                         });
                     })
@@ -1514,6 +1564,8 @@ app.get("/:schoolname/admin/courses/:coursename/removestudent", function (req, r
                             school: schoolname,
                             coursename: coursename,
                             students: students,
+                            info: req.user,
+                            name: req.user.firstname + ' ' + req.user.lastname,
                             message: ""
                         });
                     });
