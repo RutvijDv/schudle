@@ -2,15 +2,8 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Create - Course</title>
-    <link rel="stylesheet" href="/css/dashboard.min.css">
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/fontawesome5-overrides.min.css">
+    <%- include("./headers/forms.ejs") %> 
 </head>
 
 <body class="bg-gradient-primary">
@@ -33,7 +26,7 @@
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
                                         <input id="coursename" class="form-control form-control-user input" type="text"
-                                            placeholder="Course Name" name="coursename">
+                                            placeholder="Course Name" name="coursename" required>
                                     </div>
                                     <div id="coursename-feedback" class="invalid-feedback" style="display: none;">
                                         *This course name is already created.
@@ -41,7 +34,7 @@
                                 </div>
                                 <div class="form-group">
                                     <input id="course_username" class="form-control form-control-user input" type="text"
-                                        placeholder="Course Codename" name="course_username">
+                                        placeholder="Course Codename" name="course_username" required>
                                 </div>
                                 <div id="course_username-feedback" class="invalid-feedback" style="display: none;">
                                     *This course_username is already created.
@@ -56,11 +49,7 @@
             </div>
         </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
-    <script src="/javascript/dashboard.min.js"></script>
+    <%- include("./footers/forms.ejs") %> 
     <script>
         var shortname = '<%-shortname%>';
 

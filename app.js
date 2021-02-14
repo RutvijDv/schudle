@@ -607,12 +607,46 @@ app.get("/:schoolname/profile", function (req, res) {
     const shortname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.schoolshort == shortname) {
-        res.render('profile', {
-            schoolname: req.user.schoolname,
-            info: req.user,
-            school: shortname,
-            message: ""
-        })
+        if(req.user.role == "admin"){
+            res.render('profile', {
+                schoolname: req.user.schoolname,
+                info: req.user,
+                school: shortname,
+                name: req.user.firstname + ' ' + req.user.lastname,
+                message: ""
+            });
+        }else if(req.user.role == "professor"){
+            Course.find({
+                professorid: {
+                    $in: [String(req.user._id)]
+                }
+            }, function (err, find) {
+                res.render("profile", {
+                    schoolname: req.user.schoolname,
+                    info: req.user,
+                    school: shortname,
+                    message: "",
+                    name: req.user.firstname + ' ' + req.user.lastname,
+                    courses: find
+                })
+            }); 
+        }else if(req.user.role == "student"){
+            Course.find({
+                studentid: {
+                    $in: [String(req.user._id)]
+                }
+            }, function (err, find) {
+                res.render("profile", {
+                    schoolname: req.user.schoolname,
+                    info: req.user,
+                    school: shortname,
+                    message: "",
+                    name: req.user.firstname + ' ' + req.user.lastname,
+                    courses: find
+                })
+            });
+        }
+        
     } else {
         res.redirect("/" + shortname);
     }

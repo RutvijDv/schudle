@@ -1,0 +1,28 @@
+<nav class="navbar navbar-dark align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0">
+    <div class="container-fluid d-flex flex-column p-0"><a
+            class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
+            <div class="sidebar-brand-text mx-3" style="text-transform: capitalize !important;">
+                <span>Schudle</span></div>
+        </a>
+        <hr class="sidebar-divider my-0">
+        <ul class="nav navbar-nav text-light" id="accordionSidebar">
+            <li class="nav-item"><a class="nav-link active" href="/<%=school%>/student/dashboard"><i
+                        class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="/<%=school%>/profile"><i
+                        class="fas fa-user"></i><span>Profile</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="/<%=school%>/student/eventpage"><i
+                        class="fas fa-book"></i><span>Events</span></a></li>
+            <li class="nav-item"><a class="nav-link"><i class="fas fa-book"></i><span>My Course</span></a>
+                <ul class="nav navbar-nav text-light" id="mycourses">
+                    <%courses.forEach(function(course){%>
+                    <li class="nav-item"><a role="button" class="nav-link text-capitalize"
+                            href="/<%=school%>/<%= course.id %>"><i
+                                class="fas fa-graduation-cap"></i><span><%=course.coursename%></span></a></li>
+                    <%})%>
+                </ul>
+            </li>
+        </ul>
+        <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0"
+                id="sidebarToggle" type="button"><i class="fas fa-arrows-alt-h"></i></button></div>
+    </div>
+</nav>

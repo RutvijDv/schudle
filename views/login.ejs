@@ -2,20 +2,8 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
   <title>Login Page</title>
-
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
-  <link rel="stylesheet" href="/css/dashboard.min.css">
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="/css/fontawesome5-overrides.min.css">
-  <link rel="stylesheet" href="/css/forgot-password.css">
-  
+  <%- include("./headers/forms.ejs") %> 
 </head>
 
 <body class="bg-gradient-primary">
@@ -54,39 +42,12 @@
                 <button class="btn btn-primary btn-block text-white btn-user" type="submit" name="button"
                   value="login">Login</button>
               </form><br>
-              <div class="text-center"><a class="small" data-bs-toggle="modal" data-bs-target="#exampleModal"
+              <div class="text-center"><a class="small" data-bs-toggle="modal" data-bs-target="#loginModal"
                   href="#">Forgot
-                  Password?</a></div>
-              <!-- Modal -->
-              <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                  <div class="modal-content">
-                    <!-- <div class="modal-body"> -->
-                    <form action="/<%= shortname %>/forgot-password " method="POST" class="fh5co-form animate-box"
-                      data-animate-effect="fadeIn" onsubmit='forgot(event)'>
-                      <button type="button" class="btn-close float-right" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                      <h2 class="modal-title" id="exampleModalLabel">Reset Password</h2>
-
-                      <div class="form-group">
-                        <label for="username" class="sr-only">Username</label>
-                        <input type="text" id="forgot-username" class="form-control" id="username"
-                          placeholder="Username" autocomplete="off" name="username">
-                      </div>
-                      <div class="form-group">
-                        <label for="email" class="sr-only">E-Mail</label>
-                        <input type="email" id="forgot-email" class="form-control" id="password" placeholder="E-Mail"
-                          autocomplete="off" name="email">
-                      </div>
-                      <div class="form-group">
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-
+                  Password?</a>
               </div>
+
+              <%- include("./modals/forgot-password.ejs") %> 
 
               <br><br><br><br>
             </div>
@@ -95,14 +56,9 @@
       </div>
     </div>
   </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
-  <script src="/javascript/dashboard.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous">
-  </script>
+
+  <%- include("./footers/forms.ejs") %> 
+  
   <script>
     var shortname = '<%-shortname%>';
 
