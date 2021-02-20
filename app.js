@@ -1261,7 +1261,7 @@ app.post("/:schoolname/admin/courses/:coursename/assignprof", function (req, res
     }
 })
 
-//removing Professor route
+//dismiss Professor route
 app.get("/:schoolname/admin/courses/:coursename/removeprof", function (req, res) {
     const schoolname = req.params.schoolname;
     const coursename = req.params.coursename;
@@ -1444,7 +1444,7 @@ app.post("/:schoolname/admin/courses/:coursename/enrollstudent", function (req, 
     }
 })
 
-//Remove Student route
+//dismiss Student route
 app.get("/:schoolname/admin/courses/:coursename/removestudent", function (req, res) {
     const schoolname = req.params.schoolname;
     const coursename = req.params.coursename;
@@ -1532,6 +1532,161 @@ app.post("/:schoolname/admin/courses/:coursename/removestudent", function (req, 
     } else {
         res.redirect("/" + schoolname);
     };
+})
+
+//Remove user from school
+app.get('/:schoolname/admin/deleteUser', function (req, res) {
+    const schoolshort = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolshort) {
+        School.findOne({
+            shortname: schoolshort
+        }, function (err, school) {
+            if (school) {
+
+                var UserArray = school.studentid.concat(school.professorid)
+                User.find({
+                    _id: {
+                        $in: UserArray
+                    }
+                }, function (err, found) {
+                    var users = found;
+
+                    res.render("delete_user", {
+                        school: schoolshort,
+                        users: users,
+                        message: ""
+                    });
+                })
+            }
+        })
+    } else {
+        res.redirect("/" + schoolshort);
+    }
+})
+
+app.post('/:schoolname/admin/deleteUser', function (req, res) {
+    const schoolshort = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == schoolshort) {
+        students = req.body.student;
+        professors = req.body.professor;
+
+        if (typeof students == 'string') {
+            students = [];
+            students.push(req.body.student);
+        }
+        if (typeof professors == 'string') {
+            professors = [];
+            professors.push(req.body.professor);
+        }
+
+        var studentid = [];
+        var studentObject = [];
+        var studentemail = [];
+        var professorid = [];
+        var professorObject = [];
+        var professoremail = [];
+
+        if (students) {
+            for (let i = 0; i < students.length; i++) {
+                var student = students[i].split(" ");
+                studentid.push(String(student[0]));
+                studentObject.push(mongoose.Types.ObjectId(student[0]));
+                studentemail.push(String(student[1]));
+            }
+            School.findOneAndUpdate({
+                shortname: schoolshort
+            }, {
+                $pull: {
+                    studentid: {
+                        $in: studentObject
+                    }
+                }
+            }, function (err, find) {
+                if (err) {
+                    console.log(err);
+                }
+                Course.updateMany({
+                    schoolid: find._id
+                }, {
+                    $pull: {
+                        studentid: {
+                            $in: studentid
+                        },
+                        email: {
+                            $in: studentemail
+                        }
+                    }
+                }, function (err, updatedCourse) {
+                    if (err) {
+                        console.log(err);
+                    }
+                })
+                studentid.forEach(function (user) {
+                    User.findOneAndDelete({
+                        _id: user,
+                        schoolshort: schoolshort
+                    }, function (err, deletedUser) {
+                        if (err) {
+                            console.log(err);
+                        }
+                    })
+                })
+            })
+        }
+        if (professors) {
+            for (let i = 0; i < professors.length; i++) {
+                var professor = professors[i].split(" ");
+                professorid.push(String(professor[0]));
+                professorObject.push(mongoose.Types.ObjectId(professor[0]));
+                professoremail.push(String(professor[1]));
+            }
+            School.findOneAndUpdate({
+                shortname: schoolshort
+            }, {
+                $pull: {
+                    professorid: {
+                        $in: professorObject
+                    }
+                }
+            }, function (err, find) {
+                if (err) {
+                    console.log(err);
+                }
+                Course.updateMany({
+                    schoolid: find._id
+                }, {
+                    $pull: {
+                        professorid: {
+                            $in: professorid
+                        },
+                        email: {
+                            $in: professoremail
+                        }
+                    }
+                }, function (err, updatedCourse) {
+                    if (err) {
+                        console.log(err);
+                    }
+                })
+                professorid.forEach(function (user) {
+                    User.findOneAndDelete({
+                        _id: user,
+                        schoolshort: schoolshort
+                    }, function (err, deletedUser) {
+                        if (err) {
+                            console.log(err);
+                        }
+                    })
+                })
+            })
+        }
+        res.redirect("/" + schoolshort + "/admin/dashboard")
+    } 
+    else {
+        res.redirect("/" + schoolshort);
+    }
 })
 
 // open course page
