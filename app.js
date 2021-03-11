@@ -1680,7 +1680,9 @@ app.get('/:schoolname/admin/deleteUser', function (req, res) {
                     res.render("delete_user", {
                         school: schoolshort,
                         users: users,
-                        message: ""
+                        message: "",
+                        name: req.user.firstname + ' ' + req.user.lastname,
+                        info: req.user
                     });
                 })
             }
