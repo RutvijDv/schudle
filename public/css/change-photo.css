@@ -4,10 +4,19 @@
 
 #fileName::before {
     content: 'File Name:';
+    color: #61128c;
+    font-weight: 400;
+    margin-right: 4px;
 }
 #fileName {
     position: relative;
     top: 10px;
+}
+.nofile{
+    line-height: 1.5;
+    font-size: 16px;
+    color: #848484;
+    font-weight: 400;
 }
 
 .profile-file {
@@ -70,8 +79,11 @@
     border-radius: 0.35rem;
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
+span.profileFile-custom:hover::before {
+    box-shadow: none;
+}
 .profileFile-custom:after {
-    content: "Upload your files here or";
+    content: "Drag your files here or";
     background-image: url(/images/upload.png);
     background-repeat: no-repeat;
     background-size: 22px 21px;
