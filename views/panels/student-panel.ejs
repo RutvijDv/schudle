@@ -6,12 +6,12 @@
         </a>
         <hr class="sidebar-divider my-0">
         <ul class="nav navbar-nav text-light" id="accordionSidebar">
-            <li class="nav-item"><a class="nav-link active" href="/<%=school%>/student/dashboard"><i
+            <li class="nav-item"><a class="nav-link" id="student_dash" href="/<%=school%>/student/dashboard"><i
                         class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
-            <li class="nav-item"><a class="nav-link" href="/<%=school%>/profile"><i
+            <li class="nav-item"><a class="nav-link" id="student_profile" href="/<%=school%>/profile"><i
                         class="fas fa-user"></i><span>Profile</span></a></li>
-            <li class="nav-item"><a class="nav-link" href="/<%=school%>/student/eventpage"><i
-                        class="fas fa-book"></i><span>Events</span></a></li>
+            <li class="nav-item"><a class="nav-link" id="student_events" href="/<%=school%>/student/eventpage"><i
+                        class="fas fa-calendar-alt"></i><span>Events</span></a></li>
             <li class="nav-item"><a class="nav-link"><i class="fas fa-book"></i><span>My Course</span></a>
                 <ul class="nav navbar-nav text-light" id="mycourses">
                     <%courses.forEach(function(course){%>
@@ -22,7 +22,20 @@
                 </ul>
             </li>
         </ul>
-        <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0"
+        <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0 shadow-none"
                 id="sidebarToggle" type="button"><i class="fas fa-arrows-alt-h"></i></button></div>
     </div>
 </nav>
+<script>
+    // console.log(location.pathname.split("/").pop());
+    var filename=location.pathname.split("/").pop();
+    if(filename === "dashboard"){
+        document.getElementById("student_dash").classList.add("active");
+    }
+    else if(filename === "profile"){
+        document.getElementById("student_profile").classList.add("active");
+    }
+    else if(filename === "eventpage"){
+        document.getElementById("student_events").classList.add("active");
+    }
+</script>

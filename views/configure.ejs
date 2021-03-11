@@ -1,17 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configure Ejs</title>
+    <%- include("./headers/forms.ejs") %> 
 </head>
-<body>
-    <p>Authorize this app by visiting this url:  </p> <a href="<%=url%>"><%=url%></a> 
+
+<body class="bg-gradient-primary">
+    <br><br>
+    <div class="container">
+        <div class="card shadow-lg o-hidden border-0 my-5">
+            <div class="card-body p-0">
+                <div class="row">
+                    <div class="col-lg-5 d-none d-lg-flex">
+                        <div class="flex-grow-1 bg-register-image"
+                            style="background-image: url(&quot;/images/google-logo.gif&quot;);"></div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="p-5">
+                            <div class="text-center">
+                                <br>
+                                <h4 class="text-dark mb-4">Configure Drive & Calendar</h4>
+                            </div>
+                            <br><br>
+                            <p style="color: #282936;">Authorize this app by visiting the url given below:  </p>
+                            <form class="user" action="/<%=school%>/admin/configure" method="POST">
+                                <div class="form-group row">
+                                    <div class="col-sm-6 mb-3 mb-sm-0">
+                                        <a class="learn-more" id="button" href="<%=url%>" target="_blank">
+                                            <span class="circle" aria-hidden="true">
+                                                <span class="icon arrow"></span>
+                                            </span>
+                                            <span class="button-text">Configure</span>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <input class="form-control form-control-user input" type="text"
+                                        placeholder="Enter the Key" name="key" required>
+                                </div>
+                                <button class="btn btn-primary btn-block text-white btn-user" type="submit">Submit</button>
+                            </form>
+                            <br><br><br>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <%- include("./footers/forms.ejs") %> 
+    <script type="text/javascript" src="/javascript/all.js"></script>
+</body>
+</html>
+
+    <!-- <p>Authorize this app by visiting this url:  </p> <a href="<%=url%>" target="_blank"><%=url%></a> 
     <form action="/<%=school%>/admin/configure" method="POST">
         <label>Enter the key: </label>
         <input type="text" name="key">
         <button type="submit">Submit</button>
-    </form>
-</body>
-</html>
+    </form> -->
