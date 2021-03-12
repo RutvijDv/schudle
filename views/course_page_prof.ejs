@@ -12,22 +12,28 @@
         <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="POST">
             <button type="submit"> download </button>
         </form>
+        <% if(item.contentType == "assignment"){%>
+            <form action="/<%=school%>/<%=courseid%>/<%=item._id%>/viewsubmission" method="GET">
+                <button type="submit">View Submissions</button>
+            </form>
+        <%}%>
+        <hr>
     <% }) %>
 
     <h4>Professors</h4>
-    <%professors.forEach(function(profs){%>
-        <%=profs%><br>
-            <% })%>
+        <%professors.forEach(function(profs){%>
+            <%=profs%><br>
+        <% })%>
     
-            <h4>Students</h4>
-            <%students.forEach(function(student){%>
-                <%=student%><br>
-                    <% })%>
+    <h4>Students</h4>
+        <%students.forEach(function(student){%>
+            <%=student%><br>
+        <% })%>
 
-                    <h4>Course Events</h4>
-                    <%found.event.forEach(function(evt){%>
-                        <%=evt%><br>
-                            <% })%>
+    <h4>Course Events</h4>
+        <%found.event.forEach(function(evt){%>
+            <%=evt%><br>
+        <% })%>
 
     <form action="/<%=school%>/<%=found._id%>/add_course_cont" method="GET">
         <button type="submit">Add content</button>

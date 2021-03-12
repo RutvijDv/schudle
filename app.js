@@ -98,10 +98,23 @@ const reviewSchema = new mongoose.Schema({
     message: String,
 })
 
+const courseItemSubmission = new mongoose.Schema({
+    studentid: String,
+    googleid: String,
+    link: String,
+})
+
 const courseItemSchema = new mongoose.Schema({
+    contentType: {
+        type: String,
+        enum: ['content', 'assignment'],
+        default: 'content'
+    },
     name: String,
     google_id: String,
     extension: String,
+    deadline: Date,
+    submissions: [courseItemSubmission],
 })
 
 const eventSchema = new mongoose.Schema({
@@ -1844,14 +1857,16 @@ app.get('/:schoolname/:course_id', function (req, res) {
                         school: req.params.schoolname,
                         found: found,
                         students: students,
-                        professors: professors
+                        professors: professors,
+                        courseid: req.params.course_id
                     });
                 } else if (req.user.role == "student") {
                     res.render("course_page_stud", {
                         school: req.params.schoolname,
                         found: found,
                         students: students,
-                        professors: professors
+                        professors: professors,
+                        courseid: req.params.course_id
                     });
                 }
             })
@@ -1863,6 +1878,26 @@ app.get('/:schoolname/:course_id', function (req, res) {
             console.log(err);
         }
     })
+})
+
+// view submissions
+
+app.get("/:schoolname/:courseid/:itemid/viewsubmission",function(req,res){
+    if(req.isAuthenticated() && req.user.role == "professor"){
+        Course.findOne({_id: req.params.courseid}, function(err, found){
+            if(err){
+                console.log(err);
+            }
+            else{
+                console.log(found);
+                for(var i=0; i<found.items.length; i++){
+                    if(found.items[i]._id==req.params.itemid){
+                        res.render("view_submission",{item:found.items[i]});
+                    }
+                }
+            }
+        })
+    }
 })
 
 // add course content
@@ -1948,11 +1983,25 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
                                 })
                                 // console.log(file);
                                 filedet = file;
-                                found.items.push({
-                                    name: req.body.content_name,
-                                    google_id: file.data.id,
-                                    extension: mime.extension(file.data.mimeType)
-                                });
+                                if(req.body.contentType == "content"){
+                                    found.items.push({
+                                        contentType: req.body.contentType,
+                                        name: req.body.content_name,
+                                        google_id: file.data.id,
+                                        extension: mime.extension(file.data.mimeType)
+                                    });
+                                }
+
+                                else{
+                                    found.items.push({
+                                        contentType: req.body.contentType,
+                                        name: req.body.content_name,
+                                        google_id: file.data.id,
+                                        extension: mime.extension(file.data.mimeType),
+                                        deadline: req.body.deadline,
+                                    });
+                                }
+                                
                                 found.save(function (err) {
                                     if (!err) {
                                         res.redirect("/" + req.params.schoolname + "/" + req.params.course_id);
@@ -1970,6 +2019,8 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
         })
     }
 })
+
+
 
 // Download content file
 

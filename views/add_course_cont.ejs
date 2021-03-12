@@ -7,12 +7,33 @@
 </head>
 <body>
     <form action="/<%=school%>/<%=course_id%>/add_course_cont" enctype="multipart/form-data" method="POST">
+        <label>Content Type</label>
+        <input type="radio" name="contentType" value="content" onclick="check()"> Content
+        <input type="radio" name="contentType" value="assignment" id="assignment" onclick="check()"> assignment
+        <br>
         <label>Content name: </label>
         <input type="text" name="content_name">
+        <br>
         <label>Content link:</label>
         <input type="file" name="file">
+        <br>
+        <label id="deadline-label">deadline</label>
+        <input type="datetime-local" name="deadline" id="deadline">
         <button type="submit" onclick="filepath()">Add</button>
     </form>
-    
+    <script>
+        document.getElementById('deadline-label').style.visibility = 'hidden';
+        document.getElementById('deadline').style.visibility = 'hidden';
+        function check(){
+            if (document.getElementById('assignment').checked) {
+                document.getElementById('deadline-label').style.visibility = 'visible';
+                document.getElementById('deadline').style.visibility = 'visible';
+            }
+            else{ 
+                document.getElementById('deadline-label').style.visibility = 'hidden';
+                document.getElementById('deadline').style.visibility = 'hidden';
+            }
+        }
+    </script>
 </body>
 </html>
