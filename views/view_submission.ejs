@@ -11,5 +11,9 @@
     <%item.submissions.forEach(function(sub){%>
         <p><%=sub%></p>
     <%})%>
+
+    <form action="/<%=school%>/<%=courseid%>" method="GET">
+        <button type="submit">Course Page</button>
+    </form>
 </body>
 </html>

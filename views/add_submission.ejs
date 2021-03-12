@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Submission</title>
+</head>
+<body>
+    <form action="/<%=schoolname%>/<%=courseid%>/<%=itemid%>/submitassignment" method="POST"  enctype="multipart/form-data">
+        <label >Submission Type:</label>
+        <input type="radio" name="subType" value="link" id="link" onclick="check()">Link
+        <input type="radio" name="subType" value="drive" onclick="check()"> Upload
+        <br>
+
+        <input type="text" name="link" id="input">
+
+        <input type="file" name="file" id="file">
+
+        <button type="submit" onclick="filepath()">Submit</button>
+        
+    </form>
+
+    <script>
+        document.getElementById('input').style.visibility = 'hidden';
+        document.getElementById('file').style.visibility = 'hidden';
+
+        function check(){
+            if(document.getElementById('link').checked){
+                document.getElementById('input').style.visibility = 'visible';
+                document.getElementById('file').style.visibility = 'hidden';
+            }
+            else{
+                document.getElementById('input').style.visibility = 'hidden';
+                document.getElementById('file').style.visibility = 'visible';
+            }
+        }
+    </script>
+</body>
+</html>
