@@ -121,6 +121,7 @@ const courseItemSchema = new mongoose.Schema({
     extension: String,
     deadline: Date,
     submissions: [courseItemSubmission],
+    drivefolderid: String,
 })
 
 const eventSchema = new mongoose.Schema({
@@ -1188,7 +1189,7 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
                         // Handle error
                         console.error(err);
                     } else {
-                        console.log('Folder Id: ', file.data.id);
+                        // console.log('Folder Id: ', file.data.id);
                         let folder_id = file.data.id;
                         // console.log(typeof(file.data.id));
                         const newCourse = new Course({
@@ -1947,7 +1948,7 @@ app.post("/:schoolname/:courseid/:itemid/submitassignment",uploadDisk.single("fi
                         else if(req.body.subType=="drive" ){
                             var fileMetadata = {
                                 name:  req.user.username + "_" +item.name, // file name that will be saved in google drive
-                                parents: [found.drivefolderid]
+                                parents: [item.drivefolderid]
                             };
                             var media = {
                                 mimeType: req.file.mimetype,
@@ -2090,18 +2091,40 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
                                         google_id: file.data.id,
                                         extension: mime.extension(file.data.mimeType)
                                     });
+                                    
                                 }
 
                                 else{
-                                    found.items.push({
-                                        contentType: req.body.contentType,
-                                        name: req.body.content_name,
-                                        google_id: file.data.id,
-                                        extension: mime.extension(file.data.mimeType),
-                                        deadline: req.body.deadline,
-                                    });
+                                    var fileMetadata = {
+                                        'name': req.body.content_name,
+                                        'mimeType': 'application/vnd.google-apps.folder',
+                                        parents: [found.drivefolderid]
+                                    };
+                                    drive.files.create({
+                                        resource: fileMetadata,
+                                        fields: 'id'
+                                    }, function(err,file){
+                                        if(err){
+                                            console.log(err);
+                                        } else{
+                                            found.items.push({
+                                                contentType: req.body.contentType,
+                                                name: req.body.content_name,
+                                                google_id: file.data.id,
+                                                extension: mime.extension(file.data.mimeType),
+                                                deadline: req.body.deadline,
+                                                drivefolderid: file.data.id,
+                                            });
+                                            found.save(function (err) {
+                                                if (!err) {
+                                                    res.redirect("/" + req.params.schoolname + "/" + req.params.course_id);
+                                                }
+                                                console.log(err);
+                                            })
+                                        }
+                                    })
+                                    
                                 }
-                                
                                 found.save(function (err) {
                                     if (!err) {
                                         res.redirect("/" + req.params.schoolname + "/" + req.params.course_id);
