@@ -9,7 +9,18 @@
 <body>
     <h1>Subbmission for <%=item.name%></h1>
     <%item.submissions.forEach(function(sub){%>
-        <p><%=sub%></p>
+        Name: <%=sub.fullname%>
+        username: <%=sub.username%>
+        Date: <%=sub.time.toLocaleDateString()%>
+        time: <%=sub.time.toLocaleTimeString()%>
+        <%if(sub.subType == "link"){%>
+            <a href="<%=sub.link%>" target="_blank">View submission</a>
+        <%}else{%>            
+            <form action="/<%=school%>/download/<%= sub.name %>.<%= sub.extension %>/<%= sub.googleid %>" method="POST">
+                <button type="submit">View Submission</button>
+            </form>
+        <%}%>
+        <hr>
     <%})%>
 
     <form action="/<%=school%>/<%=courseid%>" method="GET">

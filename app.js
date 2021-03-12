@@ -98,31 +98,6 @@ const reviewSchema = new mongoose.Schema({
     message: String,
 })
 
-const courseItemSubmission = new mongoose.Schema({
-    subType: {
-        type: String,
-        enum: ['drive', 'link'],
-    },
-    name: String,
-    studentid: String,
-    googleid: String,
-    extension: String,
-    link: String,
-})
-
-const courseItemSchema = new mongoose.Schema({
-    contentType: {
-        type: String,
-        enum: ['content', 'assignment'],
-        default: 'content'
-    },
-    name: String,
-    google_id: String,
-    extension: String,
-    deadline: Date,
-    submissions: [courseItemSubmission],
-    drivefolderid: String,
-})
 
 const eventSchema = new mongoose.Schema({
     summary: String,
@@ -135,6 +110,37 @@ const eventSchema = new mongoose.Schema({
     meetlink: String
 })
 
+const submissionSchema = new mongoose.Schema({
+    subType: {
+        type: String,
+        enum: ['drive', 'link'],
+    },
+    name: String,
+    studentid: String,
+    googleid: String,
+    extension: String,
+    link: String,
+    username: String,
+    fullname:String,
+    time: Date,
+})
+
+const courseItemSchema = new mongoose.Schema({
+    name: String,
+    google_id: String,
+    extension: String,
+})
+
+const assignmentSchema = new mongoose.Schema({
+    name: String,
+    google_id: String,
+    extension: String,
+    deadline: Date,
+    submissions: [submissionSchema],
+    drivefolderid: String,
+})
+
+
 const courseSchema = new mongoose.Schema({
     schoolid: String,
     coursename: String,
@@ -143,6 +149,7 @@ const courseSchema = new mongoose.Schema({
     studentid: [],
     email: [],
     items: [courseItemSchema],
+    assignments: [assignmentSchema],
     event: [eventSchema],
     drivefolderid: String,
 });
@@ -1892,15 +1899,19 @@ app.get('/:schoolname/:course_id', function (req, res) {
 
 app.get("/:schoolname/:courseid/:itemid/viewsubmission",function(req,res){
     if(req.isAuthenticated() && req.user.role == "professor"){
+        var itemid = req.params.itemid;
+        // console.log(itemid);
         Course.findOne({_id: req.params.courseid}, function(err, found){
             if(err){
                 console.log(err);
             }
             else{
                 // console.log(found);
-                for(var i=0; i<found.items.length; i++){
-                    if(found.items[i]._id==req.params.itemid){
-                        res.render("view_submission",{item:found.items[i], school: req.params.schoolname, courseid: req.params.courseid});
+                for(var i=0; i<found.assignments.length; i++){
+                    if(found.assignments[i]._id==itemid){
+                        // console.log(typeof(found.assignments[i].submissions[0].time))
+                        // console.log(found.assignments[i].submissions[0].time);
+                        res.render("view_submission",{item:found.assignments[i], school: req.params.schoolname, courseid: req.params.courseid});
                     }
                 }
             }
@@ -1927,7 +1938,7 @@ app.post("/:schoolname/:courseid/:itemid/submitassignment",uploadDisk.single("fi
                 console.log(err);
             }
             else{
-                found.items.forEach(function(item){
+                found.assignments.forEach(function(item){
                     if(item._id == req.params.itemid){
                         if(req.body.subType=="link"){
                             // console.log("inside link")
@@ -1936,6 +1947,9 @@ app.post("/:schoolname/:courseid/:itemid/submitassignment",uploadDisk.single("fi
                                 name: req.user.username + "_" +item.name,
                                 studentid: req.user._id,
                                 link: req.body.link,
+                                fullname: req.user.firstname + " " + req.user.lastname,
+                                username: req.user.username,
+                                time: new Date(),
                             })
                             found.save(function (err) {
                                 if (!err) {
@@ -1984,6 +1998,10 @@ app.post("/:schoolname/:courseid/:itemid/submitassignment",uploadDisk.single("fi
                                             studentid: req.user._id,
                                             googleid: file.data.id,
                                             extension: mime.extension(file.data.mimeType),
+                                            fullname: req.user.firstname + " " + req.user.lastname,
+                                            username: req.user.username,
+                                            time: new Date,
+
                                         })
                                         found.save(function (err) {
                                             if (!err) {
@@ -2043,6 +2061,8 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
     // console.log(req.body);
     // console.log(req.file);
     if (req.isAuthenticated() && req.user.role == "professor") {
+        var file_mimetype;
+        var file_id;
         Course.findOne({
             _id: req.params.course_id
         }, function (err, found) {
@@ -2083,15 +2103,21 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
                                         return
                                     }
                                 })
+                                file_mimetype = mime.extension(file.data.mimeType);
+                                file_id = file.data.id;
                                 // console.log(file);
                                 if(req.body.contentType == "content"){
                                     found.items.push({
-                                        contentType: req.body.contentType,
                                         name: req.body.content_name,
                                         google_id: file.data.id,
                                         extension: mime.extension(file.data.mimeType)
                                     });
-                                    
+                                    found.save(function (err) {
+                                        if (!err) {
+                                            res.redirect("/" + req.params.schoolname + "/" + req.params.course_id);
+                                        }
+                                        console.log(err);
+                                    })
                                 }
 
                                 else{
@@ -2107,30 +2133,26 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
                                         if(err){
                                             console.log(err);
                                         } else{
-                                            found.items.push({
-                                                contentType: req.body.contentType,
+                                            console.log("save");
+                                            found.assignments.push({
                                                 name: req.body.content_name,
-                                                google_id: file.data.id,
-                                                extension: mime.extension(file.data.mimeType),
+                                                google_id: file_id,
+                                                extension: file_mimetype,
                                                 deadline: req.body.deadline,
                                                 drivefolderid: file.data.id,
                                             });
                                             found.save(function (err) {
-                                                if (!err) {
+                                                if (err) {
+                                                    console.log(err);
+                                                }
+                                                else{
                                                     res.redirect("/" + req.params.schoolname + "/" + req.params.course_id);
                                                 }
-                                                console.log(err);
                                             })
                                         }
                                     })
                                     
                                 }
-                                found.save(function (err) {
-                                    if (!err) {
-                                        res.redirect("/" + req.params.schoolname + "/" + req.params.course_id);
-                                    }
-                                    console.log(err);
-                                })
                             }
                         }
                     );
@@ -2213,6 +2235,7 @@ app.get('/:schoolname/:course_id/delete_course_cont', function (req, res) {
 });
 
 app.post('/:schoolname/:course_id/delete_course_cont', function (req, res) {
+    if(req.isAuthenticated() && req.user.role == "professor"){
     Course.findOne({
         _id: req.params.course_id
     }, function (err, found) {
@@ -2220,10 +2243,12 @@ app.post('/:schoolname/:course_id/delete_course_cont', function (req, res) {
             console.log(err);
         }
         if (found) {
-            // console.log(Array.isArray(req.body.delete));
+            console.log(req.body);
+
             found.items.forEach(function (item, i) {
                 if (item._id == req.body.delete) {
-
+                    console.log("found");
+                    
                     authorize(req.params.schoolname, res, delete_content);
 
                     function delete_content(auth) {
@@ -2247,6 +2272,45 @@ app.post('/:schoolname/:course_id/delete_course_cont', function (req, res) {
                     found.items.splice(i, 1);
                 }
             })
+        
+            found.assignments.forEach(function (item, i) {
+                if (item._id == req.body.delete) {
+
+                    authorize(req.params.schoolname, res, delete_content);
+
+                    function delete_content(auth) {
+                        const drive = google.drive({
+                            version: "v3",
+                            auth
+                        });
+                        drive.files.delete({
+                                fileId: item.google_id,
+                            })
+                            .then(
+                                async function (response) {
+                                        console.log("success");
+                                    },
+                                    function (err) {
+                                        console.log(err);
+                                    }
+                            );
+                        drive.files.delete({
+                                fileId: item.drivefolderid,
+                            })
+                            .then(
+                                async function (response) {
+                                        console.log("success");
+                                    },
+                                    function (err) {
+                                        console.log(err);
+                                    }
+                            );
+                    }
+
+                    found.assignments.splice(i, 1);
+                }
+            })
+        
         }
         found.save(function (err) {
             if (!err) {
@@ -2255,7 +2319,7 @@ app.post('/:schoolname/:course_id/delete_course_cont', function (req, res) {
             console.log(err);
         })
     })
-
+    }
 })
 
 

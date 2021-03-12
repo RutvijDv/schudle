@@ -7,12 +7,22 @@
 </head>
 <body>
     <h1>Welcome to <%=found.coursename%></h1>
+
+    <h4>Contents</h4>
     <% found.items.forEach(function(item){ %>
         <label><%= item.name %></label>
         <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="POST">
             <button type="submit"> download </button>
         </form>
-        <%if(item.contentType == "assignment"){%>
+    <hr>
+    <%}) %>
+
+    <h4>assignments</h4>
+    <% found.assignments.forEach(function(item){ %>
+        <label><%= item.name %></label>
+        <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="POST">
+            <button type="submit"> download </button>
+        </form>
         <% var flag = 0 ;item.submissions.forEach(function(submission){ %>
             <%if(submission.studentid == user._id){ flag = 1;%>
                 <form action="<%=school%>/<%=courseid%>/<%=item._id%>/unsubmit" method="GET">
@@ -31,9 +41,9 @@
                 <button type="submit">Submit</button>
             </form>
         
-    <% }}%>
+    <% }%>
     <hr>
-    <%}) %>
+    <%}) %>        
 
     <h4>Professors</h4>
     <%professors.forEach(function(profs){%>
