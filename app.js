@@ -1882,6 +1882,7 @@ app.get('/:schoolname/:course_id', function (req, res) {
                         professors: professors,
                         courseid: req.params.course_id,
                         user:req.user,
+                        date: new Date(),
                     });
                 }
             })
