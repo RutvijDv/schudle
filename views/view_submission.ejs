@@ -8,7 +8,7 @@
 </head>
 <body>
     <h1>Subbmission for <%=item.name%></h1>
-    <%item.submissions.forEach(function(sub){%>
+    <%item.submissions.forEach(function(sub){ var subid= sub._id%>
         Name: <%=sub.fullname%>
         username: <%=sub.username%>
         Date: <%=sub.time.toLocaleDateString()%>
@@ -20,6 +20,17 @@
                 <button type="submit">View Submission</button>
             </form>
         <%}%>
+
+        <%if(sub.pointsobtained){%>
+           <label> Awarded : <%=sub.pointsobtained%></label>
+        <%} else{%>
+            <label> Yet to be graded</label>
+        <%}%>
+
+        <form name="<%=sub._id%>" action="/<%=school%>/<%=courseid%>/<%=item._id%>/grade" method="POST">
+            <input type="Number" name="points" min="0" max="<%=item.totalpoints%>">
+            <button type="submit" name="subid" value="<%=sub._id%>">Grade</button>
+        </form>
         <hr>
     <%})%>
 

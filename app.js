@@ -123,6 +123,7 @@ const submissionSchema = new mongoose.Schema({
     username: String,
     fullname:String,
     time: Date,
+    pointsobtained: Number,
 })
 
 const courseItemSchema = new mongoose.Schema({
@@ -138,6 +139,7 @@ const assignmentSchema = new mongoose.Schema({
     deadline: Date,
     submissions: [submissionSchema],
     drivefolderid: String,
+    totalpoints: Number,
 })
 
 
@@ -166,6 +168,20 @@ const schoolSchema = new mongoose.Schema({
     googletoken: String,
 });
 
+const gradeSchema = new mongoose.Schema({
+    itemType : {
+        type: String,
+        enum: ["assignment"],
+        default: "assignment",
+    },
+    itemid: String,
+    itemname: String,
+    courseid: String,
+    coursename: String,
+    totalpoints: Number,
+    pointsobtained: Number,
+})
+
 const userSchema = new mongoose.Schema({
     username: String,
     firstname: String,
@@ -185,6 +201,7 @@ const userSchema = new mongoose.Schema({
         default: 'student'
     },
     courses: [],
+    grades: [gradeSchema],
 });
 
 
@@ -1920,6 +1937,66 @@ app.get("/:schoolname/:courseid/:itemid/viewsubmission",function(req,res){
     }
 })
 
+// grade submissions
+
+app.post("/:schoolname/:courseid/:itemid/grade", function(req,res){
+    if(req.isAuthenticated() && req.user.role == "professor"){
+        Course.findOne({_id: req.params.courseid},function(err,found){
+            if(err){
+                console.log(err);
+            }
+            else{
+                found.assignments.forEach(function(assign){
+                    if(assign._id == req.params.itemid){
+                        assign.submissions.forEach(function(sub){
+                            if(sub._id == req.body.subid){
+                                sub.pointsobtained = req.body.points,
+                                User.findOne({_id: sub.studentid},function(err, user){
+                                    if(err){
+                                        console.log(err);
+                                    }
+                                    else{
+                                        var flag=0;
+                                        user.grades.forEach(function(grade){
+                                            if(grade.itemid == req.params.itemid){
+                                                grade.pointsobtained = req.body.points;
+                                                flag = 1;
+                                            }
+                                        })
+                                        if(flag ==0) {
+                                            user.grades.push({
+                                                itemType: "assignment",
+                                                itemid: req.params.itemid,
+                                                itemname: assign.name,
+                                                courseid: req.params.courseid,
+                                                coursename: found.coursename,
+                                                totalpoints: assign.totalpoints,
+                                                pointsobtained: req.body.points,
+                                            })
+                                        }
+                                        user.save(function (err) {
+                                            if (!err) {
+                                                found.save(function (err) {
+                                                    if (!err) {
+                                                        res.redirect("/" + req.params.schoolname + "/" + req.params.courseid + "/" + req.params.itemid + "/viewsubmission");
+                                                    }
+                                                    console.log(err);
+                                                })
+                                            }
+                                            console.log(err);
+                                        })
+
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    }
+})
+
 // submit assignment
 app.get("/:schoolname/:courseid/:itemid/submitassignment",function(req,res){
     if(req.isAuthenticated() && req.user.role == "student"){
@@ -2187,6 +2264,7 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
                                                 extension: file_mimetype,
                                                 deadline: req.body.deadline,
                                                 drivefolderid: file.data.id,
+                                                totalpoints: req.body.totalpoints,
                                             });
                                             found.save(function (err) {
                                                 if (err) {

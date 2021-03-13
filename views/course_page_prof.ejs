@@ -19,6 +19,7 @@
     <h4>assignments</h4>
     <% found.assignments.forEach(function(item){ %>
         <label><%= item.name %></label>
+        <label>totalpoints: <%=item.totalpoints%></label>
         <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="POST">
             <button type="submit"> download </button>
         </form>

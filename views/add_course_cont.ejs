@@ -17,21 +17,22 @@
         <label>Content link:</label>
         <input type="file" name="file">
         <br>
-        <label id="deadline-label">deadline</label>
-        <input type="datetime-local" name="deadline" id="deadline">
+        <div id="assignment-div">
+            <label>deadline</label>
+            <input type="datetime-local" name="deadline" >
+            <label>Points</label>
+            <input type="number" name="totalpoints">
+        </div>
         <button type="submit" onclick="filepath()">Add</button>
     </form>
     <script>
-        document.getElementById('deadline-label').style.visibility = 'hidden';
-        document.getElementById('deadline').style.visibility = 'hidden';
+        document.getElementById('assignment-div').style.visibility = 'hidden';
         function check(){
             if (document.getElementById('assignment').checked) {
-                document.getElementById('deadline-label').style.visibility = 'visible';
-                document.getElementById('deadline').style.visibility = 'visible';
+                document.getElementById('assignment-div').style.visibility = 'visible';
             }
             else{ 
-                document.getElementById('deadline-label').style.visibility = 'hidden';
-                document.getElementById('deadline').style.visibility = 'hidden';
+                document.getElementById('assignment-div').style.visibility = 'hidden';
             }
         }
     </script>
