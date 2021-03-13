@@ -24,10 +24,11 @@
             <button type="submit"> download </button>
         </form>
         <% var flag = 0 ;item.submissions.forEach(function(submission){ %>
-            <%if(submission.studentid == user._id){ flag = 1;%>
-                <form action="<%=school%>/<%=courseid%>/<%=item._id%>/unsubmit" method="GET">
+            <%if(submission.studentid == user._id){ flag = 1; if(item.deadline > new Date()){%>
+                <form action="/<%=school%>/<%=courseid%>/<%=item._id%>/unsubmit" method="GET">
                     <button type="submit">Unsubmit</button>
                 </form>
+                <%}%>
                 <%if(submission.subType == "drive"){%>
                     <form action="/<%=school%>/download/<%= submission.name %>.<%= submission.extension %>/<%= submission.googleid %>" method="POST">
                         <button>View submission</button>

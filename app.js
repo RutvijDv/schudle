@@ -2021,6 +2021,52 @@ app.post("/:schoolname/:courseid/:itemid/submitassignment",uploadDisk.single("fi
     }
 })
 
+// unsubmit assignment
+app.get("/:schoolname/:courseid/:itemid/unsubmit",function(req,res){
+    Course.findOne({_id: req.params.courseid},function(err,found){
+        if(err){
+            console.log(err);
+        }
+        else{
+            found.assignments.forEach(function(assignment){
+                if(assignment._id == req.params.itemid){
+                    assignment.submissions.forEach(function(submission,i){
+                        if(submission.studentid == req.user._id){
+                            if(submission.subType == "drive"){
+                                authorize(req.params.schoolname, res, delete_submission);
+
+                                function delete_submission(auth) {
+                                    const drive = google.drive({
+                                        version: "v3",
+                                        auth
+                                    });
+                                    drive.files.delete({
+                                            fileId: submission.googleid,
+                                        })
+                                        .then(
+                                            async function (response) {
+                                                    console.log("success");
+                                                },
+                                                function (err) {
+                                                    console.log(err);
+                                                }
+                                        );
+                                }
+                            }
+                            assignment.submissions.splice(i, 1);
+                        }
+                    })
+                }
+            })
+            found.save(function(err){
+                if(!err){
+                    res.redirect("/" + req.params.schoolname + "/" + req.params.courseid);
+                }
+            })
+        }
+    })
+})
+
 // add course content
 
 app.get('/:schoolname/:course_id/add_course_cont', function (req, res) {
