@@ -8,7 +8,7 @@
 </head>
 <body>
     <h1>Subbmission for <%=item.name%></h1>
-    <%item.submissions.forEach(function(sub){%>
+    <%item.submissions.forEach(function(sub){ var subid= sub._id%>
         Name: <%=sub.fullname%>
         username: <%=sub.username%>
         Date: <%=sub.time.toLocaleDateString()%>
@@ -16,15 +16,37 @@
         <%if(sub.subType == "link"){%>
             <a href="<%=sub.link%>" target="_blank">View submission</a>
         <%}else{%>            
-            <form action="/<%=school%>/download/<%= sub.name %>.<%= sub.extension %>/<%= sub.googleid %>" method="POST">
+            <form action="/<%=school%>/download/<%= sub.name %>.<%= sub.extension %>/<%= sub.googleid %>" method="GET">
                 <button type="submit">View Submission</button>
             </form>
         <%}%>
+
+        <%if(sub.pointsobtained){%>
+           <label> Awarded : <%=sub.pointsobtained%></label>
+        <%} else{%>
+            <label> Yet to be graded</label>
+        <%}%>
+
+        <form name="<%=sub._id%>" action="/<%=school%>/<%=courseid%>/<%=item._id%>/grade" method="POST">
+            <input type="Number" name="points" min="0" max="<%=item.totalpoints%>">
+            <button type="submit" name="subid" value="<%=sub._id%>">Grade</button>
+        </form>
         <hr>
     <%})%>
 
     <form action="/<%=school%>/<%=courseid%>" method="GET">
         <button type="submit">Course Page</button>
+    </form>
+
+    <form action="/<%=school%>/<%=courseid%>/<%=item._id%>/generateAssignmentReport" method="POST">
+        <input type="text" name="extension" value=".pdf" hidden>
+        <input type="text" name="format" value="application/pdf" hidden>
+        <button type="submit" name="assignment" value="<%=JSON.stringify(item)%>">Generate Assignment Report PDF</button>
+    </form>
+    <form action="/<%=school%>/<%=courseid%>/<%=item._id%>/generateAssignmentReport" method="POST">
+        <input type="text" name="extension" value=".xlsx" hidden>
+        <input type="text" name="format" value="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+        <button type="submit" name="assignment" value="<%=JSON.stringify(item)%>">Generate Assignment Report XLSX</button>
     </form>
 </body>
 </html>

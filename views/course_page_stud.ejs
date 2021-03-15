@@ -11,7 +11,7 @@
     <h4>Contents</h4>
     <% found.items.forEach(function(item){ %>
         <label><%= item.name %></label>
-        <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="POST">
+        <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="GET">
             <button type="submit"> download </button>
         </form>
     <hr>
@@ -19,9 +19,10 @@
 
     <h4>assignments</h4>
     <% found.assignments.forEach(function(item){ %>
-        <label><%= item.name %></label>
-        <label>deadline: <%=item.deadline.toDateString()%>  <%=item.deadline.toTimeString()%></label>
-        <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="POST">
+        <label><%= item.name %></label><br>
+        <label>deadline: <%=item.deadline.toDateString()%>  <%=item.deadline.toTimeString()%></label><br>
+        <label>totalpoints: <%=item.totalpoints%></label>
+        <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="GET">
             <button type="submit"> download </button>
         </form>
         <% var flag = 0 ;item.submissions.forEach(function(submission){ %>
@@ -31,12 +32,16 @@
                 </form>
                 <%}%>
                 <%if(submission.subType == "drive"){%>
-                    <form action="/<%=school%>/download/<%= submission.name %>.<%= submission.extension %>/<%= submission.googleid %>" method="POST">
+                    <form action="/<%=school%>/download/<%= submission.name %>.<%= submission.extension %>/<%= submission.googleid %>" method="GET">
                         <button>View submission</button>
                     </form>
                 <%} else {%>
                     <a href="<%=submission.link%>" target="_blank">view_submissions</a>
-            <%}}%>
+            <%}if(submission.pointsobtained){%>
+                <label>Obtained: <%=submission.pointsobtained%></label>
+            <%}else{%>
+                <label>Yet to be graded</label>
+        <%}}%>
         <%})%>
         <%if(flag==0 && item.deadline > new Date()){%>
             <form action="/<%=school%>/<%=courseid%>/<%=item._id%>/submitassignment" method="GET">

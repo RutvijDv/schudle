@@ -16,7 +16,7 @@ const credentials = require('./credentials.json');
 const fs = require('fs');
 const {file} = require('googleapis/build/src/apis/file');
 const mime = require('mime-types');
-const { create, uniq, forEach } = require('lodash');
+const { create, uniq, forEach, values } = require('lodash');
 const uniqid = require('uniqid');
 
 const algorithm = 'aes-256-ctr';
@@ -29,6 +29,8 @@ const iv = crypto.randomBytes(16);
 const scopes = [
     'https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/calendar',
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/drive.file',
 ];
 const {
     client_id,
@@ -123,6 +125,7 @@ const submissionSchema = new mongoose.Schema({
     username: String,
     fullname:String,
     time: Date,
+    pointsobtained: Number,
 })
 
 const courseItemSchema = new mongoose.Schema({
@@ -138,6 +141,9 @@ const assignmentSchema = new mongoose.Schema({
     deadline: Date,
     submissions: [submissionSchema],
     drivefolderid: String,
+    totalpoints: Number,
+    googlesheetid: String,
+    description: String,
 })
 
 
@@ -152,6 +158,7 @@ const courseSchema = new mongoose.Schema({
     assignments: [assignmentSchema],
     event: [eventSchema],
     drivefolderid: String,
+    googlesheetid: String,
 });
 
 const schoolSchema = new mongoose.Schema({
@@ -165,6 +172,20 @@ const schoolSchema = new mongoose.Schema({
     events: [eventSchema],
     googletoken: String,
 });
+
+const gradeSchema = new mongoose.Schema({
+    itemType : {
+        type: String,
+        enum: ["assignment"],
+        default: "assignment",
+    },
+    itemid: String,
+    itemname: String,
+    courseid: String,
+    coursename: String,
+    totalpoints: Number,
+    pointsobtained: Number,
+})
 
 const userSchema = new mongoose.Schema({
     username: String,
@@ -185,6 +206,7 @@ const userSchema = new mongoose.Schema({
         default: 'student'
     },
     courses: [],
+    grades: [gradeSchema],
 });
 
 
@@ -764,6 +786,7 @@ app.get("/:schoolname/admin/dashboard", function (req, res) {
                     no_professor: find.professorid.length,
                     name: req.user.firstname + ' ' + req.user.lastname,
                     info: req.user,
+                    events: find.events.length
                 });
             })
         })
@@ -1702,12 +1725,12 @@ app.get('/:schoolname/admin/deleteUser', function (req, res) {
                         $in: UserArray
                     }
                 }, function (err, found) {
-                    var users = found;
-
                     res.render("delete_user", {
                         school: schoolshort,
-                        users: users,
-                        message: ""
+                        users: found,
+                        message: "",
+                        name: req.user.firstname + ' ' + req.user.lastname,
+                        info: req.user
                     });
                 })
             }
@@ -1924,6 +1947,381 @@ app.get("/:schoolname/:courseid/:itemid/viewsubmission",function(req,res){
                 }
             }
         })
+    }
+})
+
+// generate course report
+
+app.post("/:schoolname/:courseid/:course_username/generateCourseReport",function(req,res){
+    if(req.isAuthenticated() && req.user.role == "professor"){
+        Course.findOne({_id: req.params.courseid},
+            function(err,found){
+            if(err){
+                console.log(err);
+            }
+            else{
+                        
+                    
+            // var assignment = JSON.parse(req.body.assignment);
+            let googlesheetid;
+            var coursename = found.coursename;
+            var values = [[found.coursename, found.course_username],[],["Total Points"],
+            ["Name", "username"]];
+        
+            // console.log(values);
+            var studentid;
+            if (found.studentid) studentid = found.studentid;
+            found.assignments.forEach(function(assignment,i){
+                values[2][i+2] = assignment.totalpoints;
+                values[3][i+2] = assignment.name;
+            })
+    
+            User.find({_id: {$in: studentid}}, function(err,founded){
+                if(err){
+                    console.log(err);
+                }
+                founded.forEach(function(foun){
+                    values.push([foun.firstname+ " "+ foun.lastname, foun.username]);
+                    // console.log(values);
+                    found.assignments.forEach(function(assignment,i){
+                        assignment.submissions.forEach(function(submission){
+                            values.forEach(function(value){
+                                if(value[1] == submission.username){
+                                    if(submission.pointsobtained){
+                                        // value[2] = new Date(submission.time).toLocaleDateString();
+                                        value[i+2] = submission.pointsobtained;
+                                    }
+                                    else{
+                                        // value[2] = new Date(submission.time).toLocaleDateString();
+                                        value[i+2] = "Yet to be graded";
+                                    }
+                                    // console.log(value);
+                                }
+                            })
+                            // console.log(values);
+                        })
+                    })
+                })
+            })
+    
+            // console.log(values);
+    
+            authorize(req.params.schoolname, res, create_course_report);
+            
+            function create_course_report(auth){
+                const sheets = google.sheets({version: 'v4', auth});
+                const drive = google.drive({
+                    version: "v3",
+                    auth
+                });
+                if(found.googlesheetid){
+                    drive.files.delete({
+                        fileId: found.googlesheetid,
+                    })
+                    .then(
+                        async function (response) {
+                                console.log("success");
+                            },
+                            function (err) {
+                                console.log(err);
+                            }
+                    );
+                }
+                drive.files.create({
+                    resource: {
+                        name: found.coursename + "_report",
+                        parents: [found.drivefolderid],
+                        mimeType: "application/vnd.google-apps.spreadsheet",
+                    },
+                },
+                function(err,file){
+                    if(err){
+                        console.log(err);
+                    }
+                    else{
+                        googlesheetid = file.data.id;
+                        console.log(googlesheetid);
+                        sheets.spreadsheets.values.append({
+                            spreadsheetId: googlesheetid,
+                            range: "Sheet1!A2:B",
+                            valueInputOption: "RAW",
+                            resource: {
+                                values: values,
+                            },
+                        },function(err,response){
+                            if(err){
+                                console.log(err);
+                            }else{
+                                console.log(googlesheetid);
+                                found.googlesheetid = googlesheetid;
+                                found.save(function (err) {
+                                    if (!err) {
+                                        console.log(googlesheetid);
+                                        var fileId = googlesheetid;
+                                        var dest = fs.createWriteStream('./public/' + coursename + "Report" + req.body.extension);
+                                        async function generateReport() {
+                                            const res = await drive.files.export(
+                                              {fileId, mimeType: req.body.format},
+                                              {responseType: 'stream'}
+                                            );
+                                            res.data.pipe(dest)
+                                            await new Promise((resolve, reject) => {
+                                              dest
+                                                .on('finish', () => {
+                                                  console.log('Done downloading document:.');
+                                                  resolve();
+                                                })
+                                                .on('error', err => {
+                                                  console.error('Error downloading document.');
+                                                  reject(err);
+                                                })
+                                            });
+                                        }
+                                        async function downloadReport(){
+                                            await generateReport();
+                                            const file = "./public/" +coursename + "Report" + req.body.extension; 
+                                            res.download(file, function (err) {
+                                            fs.unlink('./public/' + coursename + "Report" +req.body.extension, (err) => {
+                                                if (err) {
+                                                    console.error(err)
+                                                    return
+                                                }
+                                            })
+                                        }); 
+                                          };
+                                        downloadReport();
+                                    }
+                                    console.log(err);
+                                })
+                                
+                            }
+                        })    
+                    }
+                })      
+            } 
+        }   
+        })
+        }
+    })
+// })
+
+// generate submission report
+
+app.post("/:schoolname/:courseid/:itemid/generateAssignmentReport",function(req,res){
+    if(req.isAuthenticated() && req.user.role == "professor"){
+    Course.findOne({_id: req.params.courseid},
+        function(err,found){
+        if(err){
+            console.log(err);
+        }
+        else{
+                    
+                
+        var assignment = JSON.parse(req.body.assignment);
+        let googlesheetid;
+        var values = [[found.coursename, found.course_username],[],[assignment.name],
+        ["Total marks", " ", assignment.totalpoints ],[],
+        ["Name", "username","Submitted on", "Points Obtained"]];
+    
+        // console.log(values);
+        var studentid;
+        if (found.studentid) studentid = found.studentid;
+
+        User.find({_id: {$in: studentid}}, function(err,founded){
+            if(err){
+                console.log(err);
+            }
+            founded.forEach(function(foun){
+                values.push([foun.firstname+ " "+ foun.lastname, foun.username]);
+                // console.log(values);
+                assignment.submissions.forEach(function(submission){
+                    values.forEach(function(value){
+                        if(value[1] == submission.username){
+                            if(submission.pointsobtained){
+                                value[2] = new Date(submission.time).toLocaleDateString();
+                                value[3] = submission.pointsobtained;
+                            }
+                            else{
+                                value[2] = new Date(submission.time).toLocaleDateString();
+                                value[3] = "Yet to be graded";
+                            }
+                            // console.log(value);
+                        }
+                    })
+                    // console.log(values);
+                })
+            })
+        })
+
+        // console.log(values);
+
+        authorize(req.params.schoolname, res, create_assignment_report);
+        
+        function create_assignment_report(auth){
+            const sheets = google.sheets({version: 'v4', auth});
+            const drive = google.drive({
+                version: "v3",
+                auth
+            });
+            if(assignment.googlesheetid){
+                drive.files.delete({
+                    fileId: assignment.googlesheetid,
+                })
+                .then(
+                    async function (response) {
+                            console.log("success");
+                        },
+                        function (err) {
+                            console.log(err);
+                        }
+                );
+            }
+            drive.files.create({
+                resource: {
+                    name: assignment.name + "_report",
+                    parents: [assignment.drivefolderid],
+                    mimeType: "application/vnd.google-apps.spreadsheet",
+                },
+            },
+            function(err,file){
+                if(err){
+                    console.log(err);
+                }
+                else{
+                    googlesheetid = file.data.id;
+                    console.log(googlesheetid);
+                    sheets.spreadsheets.values.append({
+                        spreadsheetId: googlesheetid,
+                        range: "Sheet1!A2:B",
+                        valueInputOption: "RAW",
+                        resource: {
+                            values: values,
+                        },
+                    },function(err,response){
+                        if(err){
+                            console.log(err);
+                        }else{
+                            console.log(googlesheetid);
+                            found.assignments.forEach(function(assign){
+                                if(assign._id == assignment._id){
+                                    assign.googlesheetid = googlesheetid;
+                                }
+                            })
+                            found.save(function (err) {
+                                if (!err) {
+                                    console.log(googlesheetid);
+                                    var fileId = googlesheetid;
+                                    var dest = fs.createWriteStream('./public/' + assignment.name + "Report" + req.body.extension);
+                                    async function generateReport() {
+                                        const res = await drive.files.export(
+                                          {fileId, mimeType: req.body.format},
+                                          {responseType: 'stream'}
+                                        );
+                                        res.data.pipe(dest)
+                                        await new Promise((resolve, reject) => {
+                                          dest
+                                            .on('finish', () => {
+                                              console.log('Done downloading document:.');
+                                              resolve();
+                                            })
+                                            .on('error', err => {
+                                              console.error('Error downloading document.');
+                                              reject(err);
+                                            })
+                                        });
+                                    }
+                                    async function downloadReport(){
+                                        await generateReport();
+                                        const file = "./public/" +assignment.name + "Report" + req.body.extension; 
+                                        res.download(file, function (err) {
+                                        fs.unlink('./public/' + assignment.name + "Report" + req.body.extension, (err) => {
+                                            if (err) {
+                                                console.error(err)
+                                                return
+                                            }
+                                        })
+                                    }); 
+                                      };
+                                    downloadReport();
+                                }
+                                console.log(err);
+                            })
+                            
+                        }
+                    })    
+                }
+            })      
+        } 
+    }   
+    })
+    }
+})
+
+// grade submissions
+
+app.post("/:schoolname/:courseid/:itemid/grade", function(req,res){
+    if(req.isAuthenticated() && req.user.role == "professor"){
+        Course.findOne({_id: req.params.courseid},function(err,found){
+            if(err){
+                console.log(err);
+            }
+            else{
+                found.assignments.forEach(function(assign){
+                    if(assign._id == req.params.itemid){
+                        assign.submissions.forEach(function(sub){
+                            if(sub._id == req.body.subid){
+                                sub.pointsobtained = req.body.points,
+                                User.findOne({_id: sub.studentid},function(err, user){
+                                    if(err){
+                                        console.log(err);
+                                    }
+                                    else{
+                                        var flag=0;
+                                        user.grades.forEach(function(grade){
+                                            if(grade.itemid == req.params.itemid){
+                                                grade.pointsobtained = req.body.points;
+                                                flag = 1;
+                                            }
+                                        })
+                                        if(flag ==0) {
+                                            user.grades.push({
+                                                itemType: "assignment",
+                                                itemid: req.params.itemid,
+                                                itemname: assign.name,
+                                                courseid: req.params.courseid,
+                                                coursename: found.coursename,
+                                                totalpoints: assign.totalpoints,
+                                                pointsobtained: req.body.points,
+                                            })
+                                        }
+                                        user.save(function (err) {
+                                            if (!err) {
+                                                found.save(function (err) {
+                                                    if (!err) {
+                                                        res.redirect("/" + req.params.schoolname + "/" + req.params.courseid + "/" + req.params.itemid + "/viewsubmission");
+                                                    }
+                                                    console.log(err);
+                                                })
+                                            }
+                                            console.log(err);
+                                        })
+
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    }
+})
+
+// student grades page
+
+app.get("/:schoolname/student/gradepage",function(req,res){
+    if(req.isAuthenticated() && req.user.role == "student"){
+        res.render("grade_page_stud", {info: req.user});
     }
 })
 
@@ -2194,6 +2592,8 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
                                                 extension: file_mimetype,
                                                 deadline: req.body.deadline,
                                                 drivefolderid: file.data.id,
+                                                totalpoints: req.body.totalpoints,
+                                                description: req.body.description,
                                             });
                                             found.save(function (err) {
                                                 if (err) {
@@ -2223,7 +2623,7 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
 
 // Download content file
 
-app.post('/:schoolname/download/:filename/:fileid', function (req, res) {
+app.get('/:schoolname/download/:filename/:fileid', function (req, res) {
     var fileId = req.params.fileid;
     var dest = fs.createWriteStream('./public/' + req.params.filename);
 
@@ -2396,14 +2796,30 @@ app.get("/:schoolname/:courseid/create_course_event",function(req,res){
 
 app.get("/:schoolname/admin/eventpage", function(req,res){
     if(req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname){
-        School.findOne({shortname: req.params.schoolname},function(err,found){
+        School.findOne({shortname: req.params.schoolname},function(err,scl){
             if(err){
                 console.log(err);
             }
-            if(found){
-                res.render("admin_event_page",{school: found.shortname, events : found.events});
+            if(scl){
+                Course.find({ '_id' : { $in : scl.courses}}, function(err,found){
+                    if(err){
+                        console.log(err);
+                    }
+                    else{
+                        res.render("admin_event_page",
+                        {
+                            school: scl.shortname, 
+                            events : scl.events,
+                            name: req.user.firstname + ' ' + req.user.lastname,
+                            info: req.user,
+                            courses: found,
+                            // eventId: found.event.eventId
+                        });
+                    }
+                })
+                
             }
-        })  
+        })
     }else{
         res.redirect("/" + req.params.schoolname);
     }
@@ -2596,7 +3012,7 @@ app.post("/:schoolname/create_event", function(req,res){
                                     console.log(result);
                                 }
                             });
-                            res.redirect("/"+ req.params.schoolname + "/admin/dashboard");
+                            res.redirect("/"+ req.params.schoolname + "/admin/eventpage");
                         } 
                         
                     }
@@ -2609,26 +3025,6 @@ app.post("/:schoolname/create_event", function(req,res){
         res.redirect("/" + req.params.schoolname);
     }
 })
-
-
-
-app.get("/:schoolname/admin/delete_event", function(req,res){
-    if(req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname){
-        School.findOne({ shortname : req.params.schoolname},function(err,found){
-            if(err){
-                console.log(err);
-            }
-            if(found){
-                res.render("delete_event",{school: req.params.schoolname, events: found.events, courseid: ""});
-            }
-        })
-        
-    }else{
-        res.redirect("/" + req.params.schoolname);
-    } 
-})
-
-
 
 app.post("/:schoolname/admin/delete_event", function(req,res){
     if(req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname){
@@ -2653,7 +3049,7 @@ app.post("/:schoolname/admin/delete_event", function(req,res){
                               });
                         }
                         found.events.splice(i,1);
-                        Courses.updateMany({'id' : {$in : evt.courses}}, {$pull : {event : evt._id}}, function(err,result){
+                        Course.updateMany({'id' : {$in : evt.courses}}, {$pull : {event : evt._id}}, function(err,result){
                             if(err){
                                 console.log(err);
                             }
