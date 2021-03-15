@@ -10,7 +10,7 @@
     <h4>Contents</h4>
     <% found.items.forEach(function(item){ %>
         <label><%= item.name %></label>
-        <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="POST">
+        <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="GET">
             <button type="submit"> download </button>
         </form>
         <hr>
@@ -20,7 +20,7 @@
     <% found.assignments.forEach(function(item){ %>
         <label><%= item.name %></label>
         <label>totalpoints: <%=item.totalpoints%></label>
-        <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="POST">
+        <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="GET">
             <button type="submit"> download </button>
         </form>
         <form action="/<%=school%>/<%=courseid%>/<%=item._id%>/viewsubmission" method="GET">
@@ -58,6 +58,18 @@
 
     <form action="/<%=school%>/<%=found._id%>/delete_course_event" method="GET">
         <button type="submit">Delete Event</button>
+    </form>
+
+    <form action="/<%=school%>/<%=found._id%>/<%=found.course_username%>/generateCourseReport" method="POST">
+        <input type="text" name="extension" value=".pdf" hidden>
+        <input type="text" name="format" value="application/pdf" hidden>
+        <button type="submit">Generate Course Report PDF</button>
+    </form>
+
+    <form action="/<%=school%>/<%=found._id%>/<%=found.course_username%>/generateCourseReport" method="POST">
+        <input type="text" name="extension" value=".xlsx" hidden>
+        <input type="text" name="format" value="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+        <button type="submit">Generate Course Report XLSX</button>
     </form>
 
     <form action="/<%=school%>/professor/dashboard" method="GET">
