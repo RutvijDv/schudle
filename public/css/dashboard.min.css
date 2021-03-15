@@ -220,8 +220,7 @@ button {
   border-radius: 0;
 }
 button:focus {
-  outline: 1px dotted;
-  outline: 5px auto -webkit-focus-ring-color;
+  outline: none !important;
 }
 button,
 input,
@@ -9898,6 +9897,10 @@ form.user .btn-user {
   position: relative;
   line-height: 1;
   width: 12.5rem;
+}
+::selection {
+  color: #fed136;
+  background: #470763;
 }
 @-webkit-keyframes noise-anim {
   0% {
