@@ -1853,8 +1853,6 @@ app.get('/:schoolname/:course_id', function (req, res) {
             if (found.studentid) studentid = found.studentid;
 
             var allids = professorid.concat(studentid);
-
-
             User.find({
                 _id: {
                     $in: allids
@@ -1866,25 +1864,34 @@ app.get('/:schoolname/:course_id', function (req, res) {
                     if (founded[i].role == "student") students.push(founded[i].username);
                     if (founded[i].role == "professor") professors.push(founded[i].username);
                 }
-                if (req.user.role == "professor") {
-                    res.render("course_page_prof", {
-                        school: req.params.schoolname,
-                        found: found,
-                        students: students,
-                        professors: professors,
-                        courseid: req.params.course_id
-                    });
-                } else if (req.user.role == "student") {
-                    res.render("course_page_stud", {
-                        school: req.params.schoolname,
-                        found: found,
-                        students: students,
-                        professors: professors,
-                        courseid: req.params.course_id,
-                        user:req.user,
-                        date: new Date(),
-                    });
-                }
+                Course.find({
+                    _id: {
+                        $in: req.user.courses
+                    }
+                }, function(err, courses){
+                    if (req.user.role == "professor") {
+                        res.render("course_page_prof", {
+                            school: req.params.schoolname,
+                            found: found,
+                            students: students,
+                            professors: professors,
+                            courseid: req.params.course_id,
+                            info: req.user,
+                            courses: courses
+                        });
+                    } else if (req.user.role == "student") {
+                        res.render("course_page_stud", {
+                            school: req.params.schoolname,
+                            found: found,
+                            students: students,
+                            professors: professors,
+                            courseid: req.params.course_id,
+                            user:req.user,
+                            date: new Date(),
+                        });
+                    }
+                })
+                
             })
 
         } else {

@@ -1,11 +1,109 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Couse Content</title>
+    <%- include("./headers/forms.ejs")  %> 
+    <title>Dashboard - Schudle</title>
+    <link rel="stylesheet" href="/css/tabs.css">
 </head>
-<body>
+<body id="page-top">
+    <div id="wrapper">
+        
+        <%- include("./panels/professor-panel.ejs") %> 
+
+        <div class="d-flex flex-column" id="content-wrapper">
+            <div id="content">
+                
+                <%- include("./headers/top-container.ejs") %> 
+
+                <div class="container-fluid">
+                    <div class="d-sm-flex justify-content-between align-items-center mb-4">
+                        <h3 class="text-dark mb-0 text-uppercase"><%=found.coursename%></h3>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <div class="tabs">
+                            
+                            <input type="radio" id="tab1" name="tab-control" checked>
+                            <input type="radio" id="tab2" name="tab-control">
+                            <input type="radio" id="tab3" name="tab-control">  
+                            <input type="radio" id="tab4" name="tab-control">
+                            <ul>
+                                <li title="Contents"><label for="tab1" role="button"><i class="fas fa-book-reader"></i><br><span class="pl-2">Content</span></label></li>
+                                <li title="Assignments"><label for="tab2" role="button"><i class="fas fa-file-word"></i><br><span class="pl-2">Assignment</span></label></li>
+                                <li title="Events"><label for="tab3" role="button"><i class="fas fa-calendar-alt"></i><br><span class="pl-2">Events</span></label></li>    
+                                <li title="Details"><label for="tab4" role="button"><i class="fas fa-list-alt"></i><br><span class="pl-2">Details</span></label></li>
+                            </ul>
+                            
+                            <div class="slider"><div class="indicator"></div></div>
+                            <div class="content">
+                                <section>
+                                    <h2>Contents</h2>
+                                        <form action="/<%=school%>/<%=found._id%>/add_course_cont" method="GET">
+                                            <button type="submit">Add content</button>
+                                        </form>
+                                    
+                                        <form action="/<%=school%>/<%=found._id%>/delete_course_cont" method="GET">
+                                            <button type="submit">Delete content</button>
+                                        </form>
+                                        <% found.items.forEach(function(item){ %>
+                                            <label><%= item.name %></label>
+                                            <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="POST">
+                                                <button type="submit"> download </button>
+                                            </form>
+                                            <hr>
+                                        <% }) %>
+
+                                </section>
+                                <section>
+                                    <h2>Assignments</h2>
+                                        <form action="/<%=school%>/<%=found._id%>/create_course_event" method="GET">
+                                            <button type="submit">Create Event</button>
+                                        </form>
+                                    
+                                        <form action="/<%=school%>/<%=found._id%>/delete_course_event" method="GET">
+                                            <button type="submit">Delete Event</button>
+                                        </form>
+                                        <% found.assignments.forEach(function(item){ %>
+                                            <label><%= item.name %></label>
+                                            <form action="/<%=school%>/download/<%= item.name %>.<%= item.extension %>/<%= item.google_id %>" method="POST">
+                                                <button type="submit"> download </button>
+                                            </form>
+                                            <form action="/<%=school%>/<%=courseid%>/<%=item._id%>/viewsubmission" method="GET">
+                                                <button type="submit">View Submissions</button>
+                                            </form>
+                                            <hr>
+                                        <% }) %>
+                                </section>
+                                <section>
+                                    <h2>Events</h2>
+                                        <%found.event.forEach(function(evt){%>
+                                            <%=evt%><br>
+                                        <% })%>
+                                </section>
+                                <section>
+                                    <h2>Details</h2>
+                                        <h4>Professors</h4>
+                                        <%professors.forEach(function(profs){%>
+                                            <%=profs%><br>
+                                        <% })%>
+                                    
+                                        <h4>Students</h4>
+                                        <%students.forEach(function(student){%>
+                                            <%=student%><br>
+                                        <% })%>
+                                </section>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <%- include("./footers/dashboard.ejs") %> 
+</body>
+<!-- <body>
     <h1>Welcome to <%=found.coursename%></h1>
     <h4>Contents</h4>
     <% found.items.forEach(function(item){ %>
@@ -63,4 +161,4 @@
         <button type="submit">dashboard</button>
     </form>
 </body>
-</html>
+</html> -->

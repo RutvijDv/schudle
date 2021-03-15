@@ -9139,11 +9139,14 @@ a:focus {
   align-items: center;
   justify-content: center;
 }
+.border-top-primary{
+  border-top: 0.25rem solid #61128c !important;
+}
 .border-left-primary {
   border-left: 0.25rem solid #61128c !important;
 }
 .border-bottom-primary {
-  border-bottom: 0.25rem solid #4e73df !important;
+  border-bottom: 0.25rem solid #61128c !important;
 }
 .border-left-secondary {
   border-left: 0.25rem solid #858796 !important;
