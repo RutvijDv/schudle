@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>Course - <%=coursename%></title>
-    <%- include("./headers/dashboard.ejs") %> 
+    <%- include("./headers/dashboard.ejs") %>
 
 </head>
 
 <body id="page-top">
     <div id="wrapper">
-        
-        <%- include("./panels/admin-panel.ejs") %> 
+
+        <%- include("./panels/admin-panel.ejs") %>
 
         <div class="d-flex flex-column" id="content-wrapper">
             <div id="content">
-                
-                <%- include("./headers/top-container.ejs") %> 
+
+                <%- include("./headers/top-container.ejs") %>
 
                 <div class="container-fluid">
                     <div class="d-sm-flex justify-content-between align-items-center mb-4">
@@ -50,32 +51,28 @@
                                             <tr>
                                                 <th>Select</th>
                                                 <th>Name</th>
-                                                <th>Position</th>
-                                                <th>Office</th>
-                                                <th>Age</th>
-                                                <th>Start date</th>
+                                                <th>Username</th>
+                                                <th>Email</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <form method="POST" id="remove_prof">
-                                                <%professors.forEach(function(prof){%>
+                                                <%professors.forEach(function(profs){%>
                                                 <tr>
                                                     <td>
                                                         <div class="custom-control custom-checkbox"><input
                                                                 class="custom-control-input checkbox" type="checkbox"
-                                                                id="<%=prof._id%>" name="profname"
-                                                                value="<%=prof._id +" "+ prof.email%>"><label
+                                                                id="<%=profs._id%>" name="professors"
+                                                                value="<%=profs._id +"$"+ profs.email%>"><label
                                                                 class="custom-control-label"
-                                                                for="<%=prof._id%>"></label></div>
+                                                                for="<%=profs._id%>"></label></div>
                                                     </td>
                                                     <td><img class="rounded-circle mr-2" width="30" height="30"
-                                                            src="data:image/<%=prof.profileimg.contentType%>;base64,
-                                                            <%=prof.profileimg.data.toString('base64')%>"><%=prof.username%>
+                                                            src="data:image/<%=profs.profileimg.contentType%>;base64,
+                                                            <%=profs.profileimg.data.toString('base64')%>"><%=profs.username%>
                                                     </td>
-                                                    <td>teacher</td>
-                                                    <td>Tokyo</td>
-                                                    <td>33</td>
-                                                    <td>2008/11/28</td>
+                                                    <td><%=profs.username%></td>
+                                                    <td><%=profs.email%></td>
                                                 </tr>
                                                 <% })%>
                                             </form>
@@ -109,7 +106,7 @@
                 </div>
             </div>
 
-            <%- include("./footers/dashboard.ejs") %> 
+            <%- include("./footers/dashboard.ejs") %>
 
 </body>
 

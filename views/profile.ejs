@@ -3,41 +3,42 @@
 
 <head>
     <title>Profile - Schudle</title>
-    <%- include("./headers/forms.ejs") %> 
+    <%- include("./headers/forms.ejs") %>
     <link rel="stylesheet" href="/css/change-photo.css">
 </head>
 
 <body id="page-top">
     <div id="wrapper">
-                <% if(info.role == "admin") { %> 
-                    
-                    <%- include("./panels/admin-panel.ejs") %> 
+        <% if(info.role == "admin") { %>
 
-                <% } else if(info.role == "professor") { %> 
-                    
-                    <%- include("./panels/professor-panel.ejs") %> 
+        <%- include("./panels/admin-panel.ejs") %>
 
-                <% } else if(info.role == "student") { %> 
-                   
-                    <%- include("./panels/student-panel.ejs") %> 
-                <% } %> 
+        <% } else if(info.role == "professor") { %>
+
+        <%- include("./panels/professor-panel.ejs") %>
+
+        <% } else if(info.role == "student") { %>
+
+        <%- include("./panels/student-panel.ejs") %>
+        <% } %>
 
         <div class="d-flex flex-column" id="content-wrapper">
             <div id="content">
-                
-                <%- include("./headers/top-container.ejs") %> 
+
+                <%- include("./headers/top-container.ejs") %>
 
                 <div class="container-fluid">
                     <h3 class="text-dark mb-4">Profile</h3>
                     <div class="row mb-3">
-                         <div class="col-lg-4">
+                        <div class="col-lg-4">
                             <div class="card mb-3">
                                 <div class="card-body text-center shadow"><img class="rounded-circle mb-3 mt-4" src="data:image/<%=info.profileimg.contentType%>;base64,
                                     <%=info.profileimg.data.toString('base64')%>" width="160" height="160">
                                     <div class="mb-3">
-                                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#changeImageModal" type="submit" >Change Photo</button>
-                                            <%- include("./modals/change-image.ejs") %> 
-                                            
+                                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                            data-bs-target="#changeImageModal" type="submit">Change Photo</button>
+                                        <%- include("./modals/change-image.ejs") %>
+
                                     </div>
                                 </div>
                             </div>
@@ -81,7 +82,8 @@
                                                 </div>
                                                 <div class="col-auto"><i class="fas fa-rocket fa-2x"></i></div>
                                             </div>
-                                            <p class="text-white-50 small m-0"><i class="fas fa-arrow-up"></i>&nbsp;5% since last month</p>
+                                            <p class="text-white-50 small m-0"><i class="fas fa-arrow-up"></i>&nbsp;5%
+                                                since last month</p>
                                         </div>
                                     </div>
                                 </div>
@@ -95,7 +97,8 @@
                                                 </div>
                                                 <div class="col-auto"><i class="fas fa-rocket fa-2x"></i></div>
                                             </div>
-                                            <p class="text-white-50 small m-0"><i class="fas fa-arrow-up"></i>&nbsp;5% since last month</p>
+                                            <p class="text-white-50 small m-0"><i class="fas fa-arrow-up"></i>&nbsp;5%
+                                                since last month</p>
                                         </div>
                                     </div>
                                 </div>
@@ -107,26 +110,37 @@
                                             <p class="text-primary m-0 font-weight-bold">User Settings</p>
                                         </div>
                                         <div class="card-body">
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class=""><strong>Username</strong><h6 class="form-control" ><%= info.username %> </p></div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class=""><strong>Username</strong>
+                                                        <h6 class="form-control"><%= info.username %> </p>
                                                     </div>
-                                                    <div class="col-6">
-                                                        <div class=""><strong>Email Address</strong><p class="form-control"><%= info.email  %> </p></div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class=""><strong>Email Address</strong>
+                                                        <p class="form-control"><%= info.email  %> </p>
                                                     </div>
-                                                </div>   
-                                                    <div class="row">
-                                                        <div class="col-6">
-                                                            <div class=""><strong>First Name</strong><p class="form-control"><%= info.firstname %> </p></div>
-                                                        </div>
-                                                        <div class="col-6">
-                                                            <div class=""><strong>Last Name</strong><p class="form-control"><%= info.lastname %> </div>
-                                                        </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class=""><strong>First Name</strong>
+                                                        <p class="form-control"><%= info.firstname %> </p>
                                                     </div>
-                                                    <div class="form-group">
-                                                        <a href="#" data-bs-toggle="modal" data-bs-target="#reset-password"><button class="btn btn-primary btn-sm" type="submit">Reset Password</button></a>
-                                                        <%- include("./modals/reset-password.ejs") %> 
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class=""><strong>Last Name</strong>
+                                                        <p class="form-control"><%= info.lastname %>
                                                     </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <a href="#" data-bs-toggle="modal"
+                                                    data-bs-target="#reset-password"><button
+                                                        class="btn btn-primary btn-sm" type="submit">Reset
+                                                        Password</button></a>
+                                                <%- include("./modals/reset-password.ejs") %>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="card shadow">
@@ -135,13 +149,20 @@
                                         </div>
                                         <div class="card-body">
                                             <form action="/<%=school%>/profile" method="POST">
-                                                <div class="form-group"><label for="address"><strong>Address</strong></label><input class="form-control" type="text" placeholder="<%=info.address%>" name="address"></div>
+                                                <div class="form-group"><label
+                                                        for="address"><strong>Address</strong></label><input
+                                                        class="form-control" type="text" placeholder="<%=info.address%>"
+                                                        name="address"></div>
                                                 <div class="form-row">
                                                     <div class="col-6">
-                                                        <div class="form-group"><label for="Phone.No"><strong>Phone Number</strong></label><input class="form-control" type="tel" placeholder="<%=info.phone%>" name="phone"></div>
+                                                        <div class="form-group"><label for="Phone.No"><strong>Phone
+                                                                    Number</strong></label><input class="form-control"
+                                                                type="tel" placeholder="<%=info.phone%>" name="phone">
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div class="form-group"><button class="btn btn-primary btn-sm" type="submit">Save&nbsp;Settings</button></div>
+                                                <div class="form-group"><button class="btn btn-primary btn-sm"
+                                                        type="submit">Save&nbsp;Settings</button></div>
                                             </form>
                                         </div>
                                     </div>
@@ -170,45 +191,46 @@
                 </div>
             </div>
 
-            <%- include("./footers/dashboard.ejs") %> 
+            <%- include("./footers/dashboard.ejs") %>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous">
+                integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+                crossorigin="anonymous">
             </script>
-    <script>
-        function sub(event) {
+            <script>
+                function sub(event) {
 
-            event.preventDefault();
-            var curr_pass = document.getElementById("password").value;
-            var new_pass = document.getElementById("new_password").value;
-            var conf_pass = document.getElementById("conf_password").value;
-            if (new_pass === conf_pass) {
+                    event.preventDefault();
+                    var curr_pass = document.getElementById("password").value;
+                    var new_pass = document.getElementById("new_password").value;
+                    var conf_pass = document.getElementById("conf_password").value;
+                    if (new_pass === conf_pass) {
 
-                $.ajax({
-                    url: '/<%=school%>/reset-password',
-                    type: 'post',
-                    data: {
-                        curr_pass: curr_pass,
-                        new_pass: new_pass,
-                    },
-                    success: function (response) {
-                        if (response.message == "saved") {
-                            alert("Password updated");
-                            window.location.replace("/" + response.schoolname + "/profile");
-                        }
-                        if (response.message == "current password incorrect") {
-                            alert("current password incorrect");
-                            window.location.reload();
-                        }
-                        if (response.message == "error404") {
-                            window.location.replace("/error404");
-                        }
+                        $.ajax({
+                            url: '/<%=school%>/reset-password',
+                            type: 'post',
+                            data: {
+                                curr_pass: curr_pass,
+                                new_pass: new_pass,
+                            },
+                            success: function (response) {
+                                if (response.message == "saved") {
+                                    alert("Password updated");
+                                    window.location.replace("/" + response.schoolname + "/profile");
+                                }
+                                if (response.message == "current password incorrect") {
+                                    alert("current password incorrect");
+                                    window.location.reload();
+                                }
+                                if (response.message == "error404") {
+                                    window.location.replace("/error404");
+                                }
+                            }
+                        });
+                    } else {
+                        alert("Enter Confirm password correctly!");
                     }
-                });
-            } else {
-                alert("Enter Confirm password correctly!");
-            }
-        }
-    </script>
+                }
+            </script>
 </body>
 
 </html>
