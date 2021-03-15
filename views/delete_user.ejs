@@ -1,10 +1,5 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
-
-<!-- Used 'remove_student' as template -->
-
 <head>
     <title>Delete User</title> 
     <%- include("./headers/dashboard.ejs") %>
@@ -67,12 +62,14 @@
                                                         <div class="custom-control custom-checkbox"><input
                                                                 class="custom-control-input checkbox" type="checkbox"
                                                                 id="<%=user._id%>" name="student"
-                                                                value="<%=user._id +" "+ user.email%>"><label
-                                                                class="custom-control-label"
-                                                                for="<%=user._id%>"></label></div>
+                                                                value="<%=user._id +" "+ user.email%>">
+                                                                <label class="custom-control-label"
+                                                                for="<%=user._id%>"></label>
+                                                        </div>
                                                     </td>
                                                     <td><img class="rounded-circle mr-2" width="30" height="30"
-                                                            src="assets/img/avatars/avatar1.jpeg"><%=user.username%>
+                                                            src="data:image/<%=user.profileimg.contentType%>;base64,
+                                                            <%=user.profileimg.data.toString('base64')%>"><%=user.username%>
                                                     </td>
                                                     <td><%= user.role %></td>
                                                     
@@ -152,12 +149,14 @@
                                                         <div class="custom-control custom-checkbox"><input
                                                                 class="custom-control-input checkbox" type="checkbox"
                                                                 id="<%=user._id%>" name="professor"
-                                                                value="<%=user._id +" "+ user.email%>"><label
-                                                                class="custom-control-label"
-                                                                for="<%=user._id%>"></label></div>
+                                                                value="<%=user._id +" "+ user.email%>">
+                                                                <label class="custom-control-label"
+                                                                for="<%=user._id%>"></label>
+                                                        </div>
                                                     </td>
                                                     <td><img class="rounded-circle mr-2" width="30" height="30"
-                                                            src="assets/img/avatars/avatar1.jpeg"><%=user.username%>
+                                                            src="data:image/<%=user.profileimg.contentType%>;base64,
+                                                            <%=user.profileimg.data.toString('base64')%>"><%=user.username%>
                                                     </td>
                                                     <td><%= user.role %></td>
                                                     

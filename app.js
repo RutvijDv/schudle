@@ -737,6 +737,7 @@ app.get("/:schoolname/admin/dashboard", function (req, res) {
                     no_professor: find.professorid.length,
                     name: req.user.firstname + ' ' + req.user.lastname,
                     info: req.user,
+                    events: find.events.length
                 });
             })
         })
@@ -1675,11 +1676,9 @@ app.get('/:schoolname/admin/deleteUser', function (req, res) {
                         $in: UserArray
                     }
                 }, function (err, found) {
-                    var users = found;
-
                     res.render("delete_user", {
                         school: schoolshort,
-                        users: users,
+                        users: found,
                         message: "",
                         name: req.user.firstname + ' ' + req.user.lastname,
                         info: req.user
@@ -2106,14 +2105,30 @@ app.get("/:schoolname/:courseid/create_course_event",function(req,res){
 
 app.get("/:schoolname/admin/eventpage", function(req,res){
     if(req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname){
-        School.findOne({shortname: req.params.schoolname},function(err,found){
+        School.findOne({shortname: req.params.schoolname},function(err,scl){
             if(err){
                 console.log(err);
             }
-            if(found){
-                res.render("admin_event_page",{school: found.shortname, events : found.events});
+            if(scl){
+                Course.find({ '_id' : { $in : scl.courses}}, function(err,found){
+                    if(err){
+                        console.log(err);
+                    }
+                    else{
+                        res.render("admin_event_page",
+                        {
+                            school: scl.shortname, 
+                            events : scl.events,
+                            name: req.user.firstname + ' ' + req.user.lastname,
+                            info: req.user,
+                            courses: found,
+                            // eventId: found.event.eventId
+                        });
+                    }
+                })
+                
             }
-        })  
+        })
     }else{
         res.redirect("/" + req.params.schoolname);
     }
@@ -2306,7 +2321,7 @@ app.post("/:schoolname/create_event", function(req,res){
                                     console.log(result);
                                 }
                             });
-                            res.redirect("/"+ req.params.schoolname + "/admin/dashboard");
+                            res.redirect("/"+ req.params.schoolname + "/admin/eventpage");
                         } 
                         
                     }
@@ -2319,26 +2334,6 @@ app.post("/:schoolname/create_event", function(req,res){
         res.redirect("/" + req.params.schoolname);
     }
 })
-
-
-
-app.get("/:schoolname/admin/delete_event", function(req,res){
-    if(req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname){
-        School.findOne({ shortname : req.params.schoolname},function(err,found){
-            if(err){
-                console.log(err);
-            }
-            if(found){
-                res.render("delete_event",{school: req.params.schoolname, events: found.events, courseid: ""});
-            }
-        })
-        
-    }else{
-        res.redirect("/" + req.params.schoolname);
-    } 
-})
-
-
 
 app.post("/:schoolname/admin/delete_event", function(req,res){
     if(req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname){
@@ -2363,7 +2358,7 @@ app.post("/:schoolname/admin/delete_event", function(req,res){
                               });
                         }
                         found.events.splice(i,1);
-                        Courses.updateMany({'id' : {$in : evt.courses}}, {$pull : {event : evt._id}}, function(err,result){
+                        Course.updateMany({'id' : {$in : evt.courses}}, {$pull : {event : evt._id}}, function(err,result){
                             if(err){
                                 console.log(err);
                             }
