@@ -2,19 +2,19 @@
 <html lang="en">
 
 <head>
-    <title>course - <%=coursename%></title>
-    <%- include("./headers/dashboard.ejs") %> 
+    <title>course - <%=course.coursename%></title>
+    <%- include("./headers/dashboard.ejs") %>
 </head>
 
 <body id="page-top">
     <div id="wrapper">
-        
-        <%- include("./panels/admin-panel.ejs") %> 
+
+        <%- include("./panels/admin-panel.ejs") %>
 
         <div class="d-flex flex-column" id="content-wrapper">
             <div id="content">
-                
-                <%- include("./headers/top-container.ejs") %> 
+
+                <%- include("./headers/top-container.ejs") %>
 
                 <div class="container-fluid">
                     <div class="d-sm-flex justify-content-between align-items-center mb-4">
@@ -50,10 +50,8 @@
                                             <tr>
                                                 <th>Select</th>
                                                 <th>Name</th>
-                                                <th>Position</th>
-                                                <th>Office</th>
-                                                <th>Age</th>
-                                                <th>Start date</th>
+                                                <th>Username</th>
+                                                <th>Email</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -63,8 +61,8 @@
                                                     <td>
                                                         <div class="custom-control custom-checkbox"><input
                                                                 class="custom-control-input checkbox" type="checkbox"
-                                                                id="<%=student._id%>" name="studentname"
-                                                                value="<%=student._id+" "+student.email%>"><label
+                                                                id="<%=student._id%>" name="students"
+                                                                value="<%=student._id+"$"+student.email%>"><label
                                                                 class="custom-control-label"
                                                                 for="<%=student._id%>"></label></div>
                                                     </td>
@@ -72,10 +70,8 @@
                                                             src="data:image/<%=student.profileimg.contentType%>;base64,
                                                             <%=student.profileimg.data.toString('base64')%>"><%=student.username%>
                                                     </td>
-                                                    <td>teacher sdnweur2i3 dn2nhdi32ri23</td>
-                                                    <td>Tokyo</td>
-                                                    <td>33</td>
-                                                    <td>2008/11/28</td>
+                                                    <td><%=student.username%></td>
+                                                    <td><%=student.email%></td>
                                                 </tr>
                                                 <% })%>
                                             </form>
@@ -109,7 +105,7 @@
                 </div>
             </div>
 
-            <%- include("./footers/dashboard.ejs") %> 
+            <%- include("./footers/dashboard.ejs") %>
 
 </body>
 

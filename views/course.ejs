@@ -2,23 +2,23 @@
 <html lang="en">
 
 <head>
-    <title>course - <%=coursename%></title>
-    <%- include("./headers/dashboard.ejs") %> 
+    <title>course - <%=course.coursename%></title>
+    <%- include("./headers/dashboard.ejs") %>
 </head>
 
 <body id="page-top">
     <div id="wrapper">
-        
+
         <%- include("./panels/admin-panel.ejs") %>
 
         <div class="d-flex flex-column" id="content-wrapper">
             <div id="content">
-                
-                <%- include("./headers/top-container.ejs") %> 
+
+                <%- include("./headers/top-container.ejs") %>
 
                 <div class="container-fluid">
                     <div class="d-sm-flex justify-content-between align-items-center mb-4">
-                        <h3 class="text-dark mb-0 text-uppercase"><%=coursename%></h3>
+                        <h3 class="text-dark mb-0 text-uppercase"><%=course.coursename%></h3>
                     </div>
                     <div class="row">
                         <div class="col-md-6 col-xl-3 mb-4">
@@ -28,7 +28,7 @@
                                         <div class="col mr-2">
                                             <div class="text-success font-weight-bold h5 mb-1"><span><a
                                                         class="success-link"
-                                                        href="/<%=school%>/admin/courses/<%=coursename%>/assignprof">Assign
+                                                        href="/<%=school%>/admin/courses/<%=course.coursename + "$" +course._id%>/assignprof">Assign
                                                         Professors</a></span></div>
                                             <div class="text-uppercase text-dark font-weight-bold text-xs mb-1">
                                                 <span><%=professors.length%> professors assigned</span></div>
@@ -45,7 +45,7 @@
                                         <div class="col mr-2">
                                             <div class="text-success font-weight-bold h5 mb-1"><span><a
                                                         class="success-link"
-                                                        href="/<%=school%>/admin/courses/<%=coursename%>/enrollstudent">Enroll
+                                                        href="/<%=school%>/admin/courses/<%=course.coursename + "$" +course._id%>/enrollstudent">Enroll
                                                         Students</a></span></div>
                                             <div class="text-uppercase text-dark font-weight-bold text-xs mb-1">
                                                 <span><%=students.length%> students assigned</span></div>
@@ -63,7 +63,7 @@
                                         <div class="col mr-2">
                                             <div class="text-danger font-weight-bold h5 mb-1"><span><a
                                                         class="danger-link"
-                                                        href="/<%=school%>/admin/courses/<%=coursename%>/removeprof">Dismiss
+                                                        href="/<%=school%>/admin/courses/<%=course.coursename + "$" +course._id%>/removeprof">Dismiss
                                                         Professor</a></span></div>
                                             <div class="text-uppercase text-dark font-weight-bold text-xs mb-1">
                                                 <span><%=professors.length%> professors assigned</span></div>
@@ -80,7 +80,7 @@
                                         <div class="col mr-2">
                                             <div class="text-danger font-weight-bold h5 mb-1"><span><a
                                                         class="danger-link"
-                                                        href="/<%=school%>/admin/courses/<%=coursename%>/removestudent">Unenroll
+                                                        href="/<%=school%>/admin/courses/<%=course.coursename + "$" +course._id%>/removestudent">Unenroll
                                                         Student</a></span></div>
                                             <div class="text-uppercase text-dark font-weight-bold text-xs mb-1">
                                                 <span><%=students.length%> students assigned</span></div>
@@ -116,11 +116,9 @@
                                         <thead>
                                             <tr>
                                                 <th>Name</th>
-                                                <th>Position</th>
-                                                <th>Office</th>
-                                                <th>Age</th>
-                                                <th>Start date</th>
-                                                <th>Salary</th>
+                                                <th>Username</th>
+                                                <th>Email</th>
+
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -129,11 +127,8 @@
                                                 <td><img class="rounded-circle mr-2" width="30" height="30"
                                                         src="data:image/<%=profs.profileimg.contentType%>;base64,
                                                         <%=profs.profileimg.data.toString('base64')%>"><%=profs.username%></td>
-                                                <td>teacher</td>
-                                                <td>Tokyo</td>
-                                                <td>33</td>
-                                                <td>2008/11/28</td>
-                                                <td>$162,700</td>
+                                                <td><%=profs.username%></td>
+                                                <td><%=profs.email%></td>
                                             </tr>
                                             <% })%>
                                         </tbody>
@@ -187,11 +182,8 @@
                                         <thead>
                                             <tr>
                                                 <th>Name</th>
-                                                <th>Position</th>
-                                                <th>Office</th>
-                                                <th>Age</th>
-                                                <th>Start date</th>
-                                                <th>Salary</th>
+                                                <th>Username</th>
+                                                <th>Email</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -200,11 +192,9 @@
                                                 <td><img class="rounded-circle mr-2" width="30" height="30"
                                                         src="data:image/<%=student.profileimg.contentType%>;base64,
                                                         <%=student.profileimg.data.toString('base64')%>"><%=student.username%></td>
-                                                <td>student</td>
-                                                <td>Tokyo</td>
-                                                <td>33</td>
-                                                <td>2008/11/28</td>
-                                                <td>$162,700</td>
+
+                                                <td><%=student.username%></td>
+                                                <td><%=student.email%></td>
                                             </tr>
                                             <% })%>
                                         </tbody>
@@ -236,7 +226,7 @@
                 </div>
             </div>
 
-            <%- include("./footers/dashboard.ejs") %> 
+            <%- include("./footers/dashboard.ejs") %>
 
 </body>
 

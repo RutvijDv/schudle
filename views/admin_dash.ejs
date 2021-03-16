@@ -3,17 +3,17 @@
 
 <head>
     <title>Dashboard - Schudle</title>
-    <%- include("./headers/dashboard.ejs") %> 
+    <%- include("./headers/dashboard.ejs") %>
 
 <body id="page-top">
     <div id="wrapper">
-        
-        <%- include("./panels/admin-panel.ejs") %> 
-        
+
+        <%- include("./panels/admin-panel.ejs") %>
+
         <div class="d-flex flex-column" id="content-wrapper">
             <div id="content">
-                
-                <%- include("./headers/top-container.ejs") %> 
+
+                <%- include("./headers/top-container.ejs") %>
 
                 <div class="container-fluid">
                     <div class="d-sm-flex justify-content-between align-items-center mb-4">
@@ -71,7 +71,8 @@
                                 <div class="card-body">
                                     <div class="row align-items-center no-gutters">
                                         <div class="col mr-2">
-                                            <div class="text-dark font-weight-bold h5 mb-0"><span><%= events %> </span></div>
+                                            <div class="text-dark font-weight-bold h5 mb-0"><span><%= events %> </span>
+                                            </div>
                                             <div class="text-uppercase text-warning font-weight-bold text-xs mb-1">
                                                 <span>Events</span></div>
                                         </div>
@@ -95,7 +96,7 @@
                                                 <h5 class="mb-0 text-uppercase" style="padding-bottom: 0.5rem;">
                                                     <strong>
                                                         <a role="button"
-                                                            href="/<%=school%>/admin/courses/<%=course.coursename%>">
+                                                            href="/<%=school%>/admin/courses/<%=course.coursename + "$"+course._id%>">
                                                             <%=course.coursename%><br>
                                                         </a>
                                                     </strong>
@@ -112,8 +113,8 @@
                 </div>
             </div>
 
-            <%- include("./footers/dashboard.ejs") %> 
-    </div>
+            <%- include("./footers/dashboard.ejs") %>
+        </div>
 </body>
 
 </html>

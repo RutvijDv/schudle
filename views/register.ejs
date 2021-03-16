@@ -162,10 +162,11 @@
                         password: $('#password').val(),
                     },
                     success: function (response) {
-                        if (response.message == "all saved") {
+                        if (response.message) {
                             alert($('#schoolname').val() + " registered");
                             window.location.replace("/" + $('#shortname').val());
                         } else {
+                            alert("Please Try Again");
                             window.location.reload();
                         }
                     }
