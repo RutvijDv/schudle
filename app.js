@@ -1884,8 +1884,8 @@ app.get('/:schoolname/:course_id', function (req, res) {
                 var professors = [];
                 var students = [];
                 for (var i = 0; i < founded.length; i++) {
-                    if (founded[i].role == "student") students.push(founded[i].username);
-                    if (founded[i].role == "professor") professors.push(founded[i].username);
+                    if (founded[i].role == "student") students.push(founded[i]);
+                    if (founded[i].role == "professor") professors.push(founded[i]);
                 }
                 Course.find({
                     _id: {
@@ -2844,7 +2844,7 @@ app.get("/:schoolname/professor/eventpage", function(req , res){
                 allEvent = allEvent.map(JSON.stringify);
                 var uniqueset = new Set(allEvent);
                 allEvent = Array.from(uniqueset).map(JSON.parse);
-                res.render("event_page",{school: req.params.schoolname, events : allEvent});
+                res.render("event_page",{school: req.params.schoolname, events : allEvent,info: req.user,courses: found});
             }
         })
             
