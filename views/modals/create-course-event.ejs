@@ -1,0 +1,84 @@
+<!-- Modal -->
+<div class="modal fade" id="createCourseEventModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+    <!-- <div class="modal-body"> -->
+    <form action="/<%=school%>/create_event" method="POST" class="fh5co-form animate-box"
+        data-animate-effect="fadeIn">
+        <button type="button" class="btn-close float-right" data-bs-dismiss="modal"
+        aria-label="Close"></button>
+
+        <h2 class="modal-title" id="exampleModalLabel">Create Course Event</h2>
+
+        <div class="form-group">
+        <label for="summary" class="sr-only">Event Name</label>
+        <input id="summary" type="text" name="summary" class="form-control"
+            placeholder="Event Name" autocomplete="off" required>
+        </div>
+
+        <div class="form-group">
+        <label for="description" class="sr-only">Description</label>
+        <input id="description" type="textarea" name="description" class="form-control" placeholder="Description of event"
+            autocomplete="off" required>
+        </div>
+
+        <div class="form-group">
+            <h5>Start Date & Time</h5>
+            <input id="" type="date" name="startdate" class="form-daytime col-5" style= "margin-right: 15%;" autocomplete="off" required>
+            <input id="" type="time" name="starttime" class="form-daytime col-5"  autocomplete="off" required>
+        </div>
+
+        <div class="form-group">
+            <h5>End Date & Time</h5>
+            <input id="" type="date" name="enddate" class="form-daytime col-5" style= "margin-right: 15%;" autocomplete="off" required>
+            <input id="" type="time" name="endtime" class="form-daytime col-5" autocomplete="off" required>
+        </div>        
+
+        <input type="text" name="course" value="<%=courseid%>" hidden>
+        <input type="text" name="general" value="false" hidden> 
+
+        <div class="form-group">
+            <h5>Email Reminder</h5>
+            <input type="number" name="emailhours" class="form-daytime col-5" style= "margin-right: 15%;" placeholder="hours" >
+            <input type="number" name="emailminutes" class="form-daytime col-5" placeholder="minutes" >
+
+        </div> 
+
+        <div class="form-group">
+            <h5>Pop-Up Reminder</h5>
+            <input type="number" name="pophours" class="form-daytime col-5" style= "margin-right: 15%;" placeholder="hours" >
+            <input type="number" name="popminutes" class="form-daytime col-5" placeholder="minutes" >
+        </div> 
+
+        <div class="form-group">
+            <h5 class="mb-3">Create Google-Meet</h5>
+            <div class="grid">
+
+                <label class="checkbox path">
+                    <input type="radio" name="meet" value="yes">
+                    <svg viewBox="0 0 21 21">
+                        <path d="M5,10.75 L8.5,14.25 L19.4,2.3 C18.8333333,1.43333333 18.0333333,1 17,1 L4,1 C2.35,1 1,2.35 1,4 L1,17 C1,18.65 2.35,20 4,20 L17,20 C18.65,20 20,18.65 20,17 L20,7.99769186"></path>
+                    </svg>
+                </label>
+                <span>Yes</span>
+            
+                <label class="checkbox bounce">
+                    <input type="radio" name="meet" value="no" checked>
+                    <svg viewBox="0 0 21 21">
+                        <polyline points="5 10.75 8.5 14.25 16 6"></polyline>
+                    </svg>
+                </label>
+                <span>No</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <button type="submit" name="create_event" class="btn btn-primary">Create Event</button>
+        </div>
+    </form>
+    </div>
+</div>
+</div>
+</body>
+</html>

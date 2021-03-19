@@ -1,0 +1,60 @@
+<!-- Modal -->
+<div class="modal fade" id="addAssignmentModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered">
+  <div class="modal-content">
+    <!-- <div class="modal-body"> -->
+    <form action="/<%=school%>/<%=found._id%>/add_course_cont" method="POST" enctype="multipart/form-data" class="fh5co-form animate-box"
+      data-animate-effect="fadeIn" onsubmit='forgot(event)'>
+      <button type="button" class="btn-close float-right" data-bs-dismiss="modal"
+        aria-label="Close"></button>
+      <h2 class="modal-title" id="exampleModalLabel">Add Content</h2>
+
+      <input type="radio" name="contentType" value="assignment" checked hidden>
+      <div class="form-group">
+        <label for="content" class="sr-only">Assignment Name</label>
+        <input  type="text" name="content_name" class="form-control"
+            placeholder="Assignment Name" autocomplete="off" required>
+      </div>
+
+      <div class="form-group">
+        <label for="description" class="sr-only">Description</label>
+        <input  type="textarea" name="description" class="form-control" placeholder="Description"
+            autocomplete="off" >
+      </div>
+
+      <div class="form-row">
+        <div class="form-group col-6">
+            <h5>Deadline</h5>
+            <input  type="datetime-local" name="deadline" class="form-daytime col-11" style= "margin-right: 15%;" autocomplete="off" required>
+          </div>
+          
+          <div class="form-group col-6">
+            <h5>Points</h5>
+            <input type="number" name="totalpoints" class="form-daytime" style= "margin-right: 15%;" placeholder="Total Points" >
+          </div>
+      </div>
+
+      <div class="form-group">
+        <label class="profile-file">
+          <input type="file" name="file" ref="upload" id="assignmentName" aria-label="File Input" onchange="getFileAssignment()">
+          <span class="profileFile-custom content"></span>
+        </label>
+        <h6 class="fileName" id="fileAssignment" style="text-align:left;"><span class="nofile" >No files Selected</span></h6>
+      </div>
+      
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary" onclick="filepath()">Upload</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</div>
+<script>
+    function getFileAssignment()
+    {
+        var x = document.getElementById('assignmentName');
+        document.getElementById('fileAssignment').innerHTML = x.value.split('\\').pop();
+    }
+</script>

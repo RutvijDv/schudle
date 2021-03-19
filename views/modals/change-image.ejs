@@ -8,7 +8,7 @@ aria-hidden="true">
       data-animate-effect="fadeIn" onsubmit='forgot(event)'>
       <button type="button" class="btn-close float-right" data-bs-dismiss="modal"
         aria-label="Close"></button>
-      <h2 class="modal-title" id="exampleModalLabel">Change Profile Image</h2>
+      <h2 class="modal-title">Change Profile Image</h2>
 
       <div class="form-group">
         <label for="Image" class="sr-only">Profile Image</label>  
@@ -21,7 +21,7 @@ aria-hidden="true">
           <input type="file" name="file" ref="upload" id="imgInp" aria-label="File Input" onchange="getFileName()">
           <span class="profileFile-custom"></span>
         </label>
-        <h6 id="fileName"  style="text-align:left;"><span class="nofile" >No files Selected</span></h6>
+        <h6 class="fileName" id="profileName" style="text-align:left;"><span class="nofile" >No files Selected</span></h6>
       </div>
       
       <div class="form-group">
@@ -55,6 +55,6 @@ aria-hidden="true">
     function getFileName()
     {
         var x = document.getElementById('imgInp');
-        document.getElementById('fileName').innerHTML = x.value.split('\\').pop();
+        document.getElementById('profileName').innerHTML = x.value.split('\\').pop();
     }
 </script>

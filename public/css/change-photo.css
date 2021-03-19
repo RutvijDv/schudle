@@ -2,13 +2,13 @@
     border-radius: 100rem;
 }
 
-#fileName::before {
+.fileName::before {
     content: 'File Name:';
     color: #61128c;
     font-weight: 400;
     margin-right: 4px;
 }
-#fileName {
+.fileName {
     position: relative;
     top: 10px;
 }
@@ -79,7 +79,7 @@
     border-radius: 0.35rem;
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
-span.profileFile-custom:hover::before {
+span.profileFile-custom:hover:before {
     box-shadow: none;
 }
 .profileFile-custom:after {
@@ -96,4 +96,7 @@ span.profileFile-custom:hover::before {
     position: relative;
     top: 30px;
     right: 33px;
+}
+.content:after{
+    padding-left: 110px;
 }

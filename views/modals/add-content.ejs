@@ -1,0 +1,41 @@
+<!-- Modal -->
+<div class="modal fade" id="addContentModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered">
+  <div class="modal-content">
+    <!-- <div class="modal-body"> -->
+    <form action="/<%=school%>/<%=found._id%>/add_course_cont" method="POST" enctype="multipart/form-data" class="fh5co-form animate-box"
+      data-animate-effect="fadeIn" onsubmit='forgot(event)'>
+      <button type="button" class="btn-close float-right" data-bs-dismiss="modal"
+        aria-label="Close"></button>
+      <h2 class="modal-title">Add Content</h2>
+
+      <input type="radio" name="contentType" value="content" checked hidden>
+      <div class="form-group">
+        <label for="content" class="sr-only">Content Name</label>
+        <input type="text" name="content_name" class="form-control"
+            placeholder="Content Name" autocomplete="off" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="profile-file">
+          <input type="file" name="file" ref="upload" id="imgContent" aria-label="File Input" onchange="getFileContent()">
+          <span class="profileFile-custom content"></span>
+        </label>
+        <h6 class="fileName" id="contentName" style="text-align:left;"><span class="nofile" >No files Selected</span></h6>
+      </div>
+      
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary" onclick="filepath()">Upload</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+<script>
+    function getFileContent()
+    {
+        var x = document.getElementById('imgContent');
+        document.getElementById('contentName').innerHTML = x.value.split('\\').pop();
+    }
+</script>

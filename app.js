@@ -2503,40 +2503,6 @@ app.get("/:schoolname/:courseid/:itemid/unsubmit", function (req, res) {
 
 // add course content
 
-app.get('/:schoolname/:course_id/add_course_cont', function (req, res) {
-
-    // authorize(req.params.schoolname,res,list_files);
-
-    // function list_files(auth){
-    //     const drive = google.drive({ version: "v3", auth });
-    //     // console.log(auth);
-
-    //     drive.files.list({}, (err, res) => {
-    //         try {if (err) throw err;
-    //         const files = res.data.files;
-    //         if (files.length) {
-    //             files.map((file) => {
-    //                 console.log(file);
-    //             });
-    //         } else {
-    //             console.log('No files found');
-    //         }}
-    //         catch (err) {
-    //             console.log(err);
-    //         }
-    //     })
-
-    // }
-
-    res.render("add_course_cont", {
-        school: req.params.schoolname,
-        course_id: req.params.course_id
-    });
-
-})
-
-
-
 app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), function (req, res) {
     // console.log(req.body);
     // console.log(req.file);
@@ -2925,40 +2891,6 @@ app.get("/:schoolname/student/eventpage", function (req, res) {
     }
 })
 
-
-
-app.get("/:schoolname/admin/create_event", function (req, res) {
-    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == req.params.schoolname) {
-        School.findOne({
-            shortname: req.params.schoolname
-        }, function (err, scl) {
-            if (err) {
-                console.log(err);
-            }
-            if (scl) {
-                Course.find({
-                    '_id': {
-                        $in: scl.courses
-                    }
-                }, function (err, found) {
-                    if (err) {
-                        console.log(err);
-                    }
-                    if (found) {
-                        res.render("create_event", {
-                            school: req.params.schoolname,
-                            courses: found
-                        });
-                    }
-                })
-            }
-        })
-    } else {
-        res.redirect("/" + req.params.schoolname);
-    }
-})
-
-
 app.post("/:schoolname/create_event", function (req, res) {
     if (req.isAuthenticated() && (req.user.role == "professor" || req.user.role == "admin") && req.user.schoolshort == req.params.schoolname) {
         var courses = req.body.course;
@@ -3176,32 +3108,6 @@ app.post("/:schoolname/admin/delete_event", function (req, res) {
         res.redirect("/" + req.params.schoolname);
     }
 })
-
-
-
-app.get("/:schoolname/:courseid/delete_course_event", function (req, res) {
-    if (req.isAuthenticated() && req.user.role == "professor" && req.user.schoolshort == req.params.schoolname) {
-        Course.findOne({
-            '_id': req.params.courseid
-        }, function (err, found) {
-            if (err) {
-                console.log(err);
-            }
-            if (found) {
-                var courseEvent = found.event.filter(o => o.general == 'false');
-                res.render("delete_event", {
-                    school: req.params.schoolname,
-                    courseid: req.params.courseid,
-                    events: courseEvent
-                });
-            }
-        })
-
-    } else {
-        res.redirect("/" + req.params.schoolname);
-    }
-})
-
 
 app.post("/:schoolname/:courseid/delete_course_event", function (req, res) {
     if (req.isAuthenticated() && req.user.role == "professor" && req.user.schoolshort == req.params.schoolname) {
